@@ -1,4 +1,5 @@
 import pandas as pd
+import random
 
 from sklearn.datasets import make_classification
 from sklearn.model_selection import train_test_split
@@ -15,7 +16,7 @@ from sklearn.naive_bayes import GaussianNB
 from sklearn.discriminant_analysis import QuadraticDiscriminantAnalysis
 from sklearn.linear_model import SGDClassifier
 
-X, Y = make_classification(n_samples=1000, n_classes=2, n_features=5, n_redundant=0, random_state=1)
+X, Y = make_classification(n_samples=100, n_classes=2, n_features=5, n_redundant=0, random_state=1)
 X_train, X_test, Y_train, Y_test = train_test_split(X, Y, test_size=0.2)
 
 names = ["Nearest_Neighbors_3", "Nearest_Neighbors_4", "Nearest_Neighbors_5", "Nearest_Neighbors_7", "Linear_SVM", "Polynomial_SVM", "RBF_SVM", "Gaussian_Process",
@@ -57,8 +58,27 @@ for name, clf in zip(names, classifiers):
     clf.fit(X_train, Y_train)
     print("Clasificador "+name+" treinado.")
     c = {}
+    c['name'] = name
     c['score'] = clf.score(X_test, Y_test)
     c['predict'] = clf.predict(X_test)
     classif[name] = c
 
+#shuffling classifiers for the pool
+keys_classif = list(classif.keys())
+random.shuffle(keys_classif)
+
+#building first celullar automata
+def returnMatrixline(clf, keys):
+    returnList = []
+    for x in range(5):
+        returnList.append(clf[keys.pop(0)])
+    return returnList
+
+matrix = [
+    returnMatrixline(classif, keys_classif),
+    returnMatrixline(classif, keys_classif),
+    returnMatrixline(classif, keys_classif),
+    returnMatrixline(classif, keys_classif),
+    returnMatrixline(classif, keys_classif),
+]
 a = "a"
