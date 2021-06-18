@@ -16,8 +16,8 @@ from sklearn.naive_bayes import GaussianNB
 from sklearn.discriminant_analysis import QuadraticDiscriminantAnalysis
 from sklearn.linear_model import SGDClassifier
 
-X, Y = make_classification(n_samples=100, n_classes=2, n_features=5, n_redundant=0, random_state=1)
-X_train, X_test, Y_train, Y_test = train_test_split(X, Y, test_size=0.2)
+X, Y = make_classification(n_samples=1000, n_classes=2, n_features=5, n_redundant=0, random_state=1)
+X_train, X_test, Y_train, Y_test = train_test_split(X, Y, test_size=0.5)
 
 names = ["Nearest_Neighbors_3", "Nearest_Neighbors_4", "Nearest_Neighbors_5", "Nearest_Neighbors_7", "Linear_SVM", "Polynomial_SVM", "RBF_SVM", "Gaussian_Process",
          "Gradient_Boosting", "Decision_Tree_3", "Decision_Tree_5", "Extra_Trees_10_2", "Extra_Trees_30_2", "Extra_Trees_10_4", "Random_Forest_12_100", "Random_Forest_15_100", "Random_Forest_5_300",
@@ -64,17 +64,38 @@ for name, clf in zip(names, classifiers):
     classif[name] = c
 
 #shuffling classifiers for the pool
-keys_classif = list(classif.keys())
-random.shuffle(keys_classif)
+keysClassif = list(classif.keys())
+random.shuffle(keysClassif)
 
 #building matrix of first celullar automata
+nrCells = 5
 matrix = [
-    cca.returnMatrixline(classif, keys_classif),
-    cca.returnMatrixline(classif, keys_classif),
-    cca.returnMatrixline(classif, keys_classif),
-    cca.returnMatrixline(classif, keys_classif),
-    cca.returnMatrixline(classif, keys_classif),
+    cca.returnMatrixline(classif, keysClassif, nrCells),
+    cca.returnMatrixline(classif, keysClassif, nrCells),
+    cca.returnMatrixline(classif, keysClassif, nrCells),
+    cca.returnMatrixline(classif, keysClassif, nrCells),
+    cca.returnMatrixline(classif, keysClassif, nrCells),
 ]
 
+
+#training iteration
+t = 1000
+# for i in range(t):
+distance = 1
+sample = 0
+#get each cells of matrix
+for i in range(nrCells):
+   for j in range(nrCells):
+      neighbors = []
+      #neighbors of current cell
+      neighbors = cca.returnNeighboringClassifiers(nrCells, nrCells, i, j, distance, matrix)
+      cellSample = matrix[i][j]['predict'][sample]
+      if cellSample == Y_test[sample]:
+         #algoritmo caso certo
+         b = 1
+      else:
+         #algoritmo caso errado
+         b = 1
+      a = "a"
 
 a = "a"
