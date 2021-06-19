@@ -12,6 +12,13 @@ class returnNeighboringClassifiersTest(unittest.TestCase):
          ["FA", "FB", "FC", "FD", "FE", "FF"]
       ]
 
+      self.neighbors = [
+         {'name': 'vizinho1', 'score': 0.814, 'predict': [0, 0, 0]},
+         {'name': 'vizinho2', 'score': 0.846, 'predict': [0, 0, 0]},
+         {'name': 'vizinho3', 'score': 0.82, 'predict': [1, 1, 1]},
+         {'name': 'vizinho4', 'score': 0.82, 'predict': [1, 1, 1]}
+      ]
+
    def test_retorna_AB_BA_BB_DISTANCE1(self):
       neighbors = cca.returnNeighboringClassifiers(6, 6, 0, 0, 1, self.matrixTest)
       self.assertListEqual(["AB","BA","BB"], neighbors)

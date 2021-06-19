@@ -89,7 +89,11 @@ for i in range(nrCells):
       neighbors = []
       #neighbors of current cell
       neighbors = cca.returnNeighboringClassifiers(nrCells, nrCells, i, j, distance, matrix)
+      #value of sample classified
       cellSample = matrix[i][j]['predict'][sample]
+      
+      
+      
       if cellSample == Y_test[sample]:
          #algoritmo caso certo
          b = 1
