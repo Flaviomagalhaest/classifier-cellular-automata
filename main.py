@@ -1,4 +1,5 @@
 import pandas as pd
+import matplotlib.pyplot as plt
 import random, cca
 
 from sklearn.datasets import make_classification
@@ -51,8 +52,15 @@ classifiers = [
     QuadraticDiscriminantAnalysis(),
     SGDClassifier(loss="hinge", penalty="l2")]
 
-classif = {}
+####### PARAMS ############
+energyInit = 5  #Initial energy of cells
+nrCells = 5     #Size of matrix (ex. nrCells = 5 -> matrix 5x5)
+t = 1000        #Number of iteractions
+distance = 1    #Euclidean distance of matrix 
+sample = 0      
+###########################
 
+classif = {}
 for name, clf in zip(names, classifiers):
     print("Treinando "+name)
     clf.fit(X_train, Y_train)
@@ -61,6 +69,7 @@ for name, clf in zip(names, classifiers):
     c['name'] = name
     c['score'] = clf.score(X_test, Y_test)
     c['predict'] = clf.predict(X_test)
+    c['energy'] = energyInit
     classif[name] = c
 
 #shuffling classifiers for the pool
@@ -68,7 +77,6 @@ keysClassif = list(classif.keys())
 random.shuffle(keysClassif)
 
 #building matrix of first celullar automata
-nrCells = 5
 matrix = [
     cca.returnMatrixline(classif, keysClassif, nrCells),
     cca.returnMatrixline(classif, keysClassif, nrCells),
@@ -77,29 +85,35 @@ matrix = [
     cca.returnMatrixline(classif, keysClassif, nrCells),
 ]
 
-
 #training iteration
-t = 1000
-# for i in range(t):
-distance = 1
-sample = 0
-#get each cells of matrix
-for i in range(nrCells):
-   for j in range(nrCells):
-      neighbors = []
-      #neighbors of current cell
-      neighbors = cca.returnNeighboringClassifiers(nrCells, nrCells, i, j, distance, matrix)
-      #value of sample classified
-      cellSample = matrix[i][j]['predict'][sample]
-      
-      
-      
-      if cellSample == Y_test[sample]:
-         #algoritmo caso certo
-         b = 1
-      else:
-         #algoritmo caso errado
-         b = 1
-      a = "a"
+for sample in range(len(Y_test)):
+    #get each cells of matrix
+    for i in range(nrCells):
+        for j in range(nrCells):
+            neighbors = []
+            #neighbors of current cell
+            neighbors = cca.returnNeighboringClassifiers(nrCells, nrCells, i, j, distance, matrix)
+            
+            #return of classifier of neighbors. True if majority right.
+            majorityNeighborsClassifier = cca.neighborsMajorityRight(neighbors, sample, Y_test[sample])
+            
+            #value of sample classified
+            cellSample = matrix[i][j]['predict'][sample]
+            currentEnergy = matrix[i][j]['energy']
+            if cellSample == Y_test[sample]:
+                #Classifier is right
+                if (majorityNeighborsClassifier):
+                    matrix[i][j]['energy'] = currentEnergy + 2
+                else:
+                    matrix[i][j]['energy'] = currentEnergy + 4
+            else:
+                #Classifier is wrong
+                if (majorityNeighborsClassifier):
+                    matrix[i][j]['energy'] = currentEnergy - 4
+                else:
+                    matrix[i][j]['energy'] = currentEnergy - 2
+    print(cca.returnMatrixOfIndividualItem(matrix, 'energy'))
+    cca.printMatrix(matrix)
 
+#NAO ESQUECER DE IMPLEMENTAR PERDA DE 1 DE ENERGIA PARA A CÉLULA VIVER.
 a = "a"

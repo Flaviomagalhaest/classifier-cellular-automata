@@ -14,8 +14,8 @@ class returnNeighboringClassifiersTest(unittest.TestCase):
 
       self.neighbors = [
          {'name': 'vizinho1', 'score': 0.814, 'predict': [0, 0, 0]},
-         {'name': 'vizinho2', 'score': 0.846, 'predict': [0, 0, 0]},
-         {'name': 'vizinho3', 'score': 0.82, 'predict': [1, 1, 1]},
+         {'name': 'vizinho2', 'score': 0.846, 'predict': [0, 0, 1]},
+         {'name': 'vizinho3', 'score': 0.82, 'predict': [1, 0, 1]},
          {'name': 'vizinho4', 'score': 0.82, 'predict': [1, 1, 1]}
       ]
 
@@ -59,6 +59,17 @@ class returnNeighboringClassifiersTest(unittest.TestCase):
       neighbors = cca.returnNeighboringClassifiers(4, 4, 1, 1, 2, self.matrixTest)
       self.assertListEqual(["AA","AB","AC","AD","BA","BC","BD","CA","CB","CC","CD","DA","DB","DC","DD"], neighbors)
 
+   def test_retorna_true_majority_neighbors_rigth(self):
+      response = cca.neighborsMajorityRigth(self.neighbors, 1, 0)
+      self.assertTrue(response)
+
+   def test_retorna_false_majority_neighbors_wrong(self):
+      response = cca.neighborsMajorityRigth(self.neighbors, 2, 0)
+      self.assertFalse(response)
+
+   def test_retorna_false_majority_neighbors_even(self):
+      response = cca.neighborsMajorityRigth(self.neighbors, 0, 1)
+      self.assertFalse(response)
 
 if __name__ == "__main__":
    unittest.main()
