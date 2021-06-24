@@ -2,6 +2,9 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import random, cca
 
+from classifiers import Classifiers
+from params import Params
+
 from sklearn.datasets import make_classification
 from sklearn.model_selection import train_test_split
 from sklearn.neural_network import MLPClassifier
@@ -16,70 +19,23 @@ from sklearn.discriminant_analysis import QuadraticDiscriminantAnalysis
 from sklearn.linear_model import SGDClassifier, RidgeClassifier
 from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
 
+####### TEST MASS ############
 X, Y = make_classification(n_samples=1000, n_classes=2, n_features=5, n_redundant=0, random_state=1)
 X_train, X_test, Y_train, Y_test = train_test_split(X, Y, test_size=0.5)
 
-names = ["Nearest_Neighbors_3", "Nearest_Neighbors_4", "Nearest_Neighbors_5", "Nearest_Neighbors_7", "Linear_SVM", "Polynomial_SVM",
-         "RBF_SVM", "SIGMOID_SVM", "OVO_SVM", "Gaussian_Process","Gradient_Boosting", "Decision_Tree_3", "Decision_Tree_5", "Extra_Trees_10_2",
-         "Extra_Trees_30_2", "Extra_Trees_10_4", "Random_Forest_12_100", "Random_Forest_15_100", "Random_Forest_5_300",
-         "Random_Forest_7_300", "Neural_Net", "AdaBoost_50", "AdaBoost_100", "AdaBoost_150", "Naive_Bayes", "QDA", "SGD_hinge", "SGD_log",
-         "SGD_modified_huber","SGD_squared_hinge", "SGD_perceptron", "SGD_squared_loss", "SGD_huber", "SGD_epsilon_insensitive", "LDA", "Ridget",
-         "Linear_NuSVC", "Polynomial_NuSVC", "RBF_NuSVC", "SIGMOID_NuSVC", "OVO_NuSVC", "LinearSVC", "LinearSVC_l2"]
-
-classifiers = [
-    KNeighborsClassifier(3),
-    KNeighborsClassifier(4),
-    KNeighborsClassifier(5),
-    KNeighborsClassifier(7),
-    SVC(kernel="linear", C=0.025),
-    SVC(kernel="poly", degree=3, C=0.025),
-    SVC(kernel="rbf", C=1, gamma=2),
-    SVC(kernel='sigmoid'),
-    SVC(decision_function_shape='ovo'),
-    GaussianProcessClassifier(1.0 * RBF(1.0)),
-    GradientBoostingClassifier(n_estimators=100, learning_rate=1.0),
-    DecisionTreeClassifier(max_depth=3),
-    DecisionTreeClassifier(max_depth=5),
-    ExtraTreesClassifier(n_estimators=10, min_samples_split=2),
-    ExtraTreesClassifier(n_estimators=30, min_samples_split=2),
-    ExtraTreesClassifier(n_estimators=10, min_samples_split=4),
-    RandomForestClassifier(max_depth=12, n_estimators=100),
-    RandomForestClassifier(max_depth=15, n_estimators=100),
-    RandomForestClassifier(max_depth=5, n_estimators=300),
-    RandomForestClassifier(max_depth=7, n_estimators=300),
-    MLPClassifier(alpha=1, max_iter=1000),
-    AdaBoostClassifier(n_estimators=50),
-    AdaBoostClassifier(n_estimators=100),
-    AdaBoostClassifier(n_estimators=150),
-    GaussianNB(),
-    QuadraticDiscriminantAnalysis(),
-    SGDClassifier(loss="hinge", penalty="l2"),
-    SGDClassifier(loss="log"),
-    SGDClassifier(loss="modified_huber"),
-    SGDClassifier(loss="squared_hinge"),
-    SGDClassifier(loss="perceptron"),
-    SGDClassifier(loss="squared_loss"),
-    SGDClassifier(loss='huber'),
-    SGDClassifier(loss='epsilon_insensitive'),
-    LinearDiscriminantAnalysis(),
-    RidgeClassifier(),
-    NuSVC(kernel="linear"),
-    NuSVC(kernel="poly", degree=3),
-    NuSVC(kernel="rbf",gamma=2),
-    NuSVC(kernel='sigmoid'),
-    NuSVC(decision_function_shape='ovo'),
-    LinearSVC(),
-    LinearSVC(penalty='l2', loss='hinge')
-    ]
+####### CLASSIFIERS ############
+ClassifiersClass = Classifiers()
+names, classifiers = ClassifiersClass.getAll(ensembleFlag=False)
 
 ####### PARAMS ############
-energyInit = 5              #Initial energy of cells
-nrCells = 5                 #Size of matrix (ex. nrCells = 5 -> matrix 5x5)
-t = 100                      #Number of iteractions
-distance = 1                #Euclidean distance of matrix 
-sample = 0
-liveEnergy = 1              #Value of energy that cell wil lost per iteration
-cellRealocation = False     #Flag to realocate new classifier in dead cells
+params = Params.get()
+energyInit      = params['energyInit']
+nrCells         = params['nrCells']
+t               = params['t']
+distance        = params['distance']
+sample          = params['sample']
+liveEnergy      = params['liveEnergy']
+cellRealocation = params['cellRealocation']
 ###########################
 
 classif = {}
