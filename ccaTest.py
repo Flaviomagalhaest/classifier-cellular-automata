@@ -94,7 +94,7 @@ class testLostEnergyToLive(unittest.TestCase):
       ]
    
    def test_one_cell_dead(self):
-      cca.lostEnergyToLive(self.matrix, 1, self.pool)
+      cca.lostEnergyToLive(self.matrix, 1)
       self.assertEqual(4, self.matrix[0][0]['energy'])
       self.assertEqual(7, self.matrix[0][1]['energy'])
       self.assertEqual(1, self.matrix[1][0]['energy'])
@@ -167,7 +167,7 @@ class returnListOfWeightedVotes(unittest.TestCase):
       ]
    
    def test_list_of_weighted_votes(self):
-      answers = cca.weightedVote(self.matrix, 3)
+      answers = cca.weightedVote(self.matrix, range(0,3))
       self.assertListEqual([0,1,2], answers)
 
 class returnScore(unittest.TestCase):

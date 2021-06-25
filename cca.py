@@ -38,7 +38,7 @@ def neighborsMajorityRight(neighbors, sampleIndex, answer):
     else: return False
 
 #Method to subtract energy from live cell
-def lostEnergyToLive(matrix, liveEnergy, pool=[]):
+def lostEnergyToLive(matrix, liveEnergy):
     matrixLength = len(matrix[0])
     for i in range(matrixLength):
         for j in range(matrixLength):
