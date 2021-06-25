@@ -52,16 +52,17 @@ def collectOrRelocateDeadCells(matrix, pool=[], classifiers={}, cellRealocation=
     for i in range(matrixLength):
         for j in range(matrixLength):
             if ('energy' in matrix[i][j]) and (matrix[i][j]['energy'] <= 0):
+                print("Classifier "+matrix[i][j]['name']+" died. "+pool[0]+" took the place.")
                 pool.append(matrix[i][j]['name'])
                 if cellRealocation:
                     matrix[i][j] = classifiers[pool.pop(0)]
                 else: matrix[i][j] = {}
 
 #Return list of answers of matrix using weighted vote for each samples
-def weightedVote(matrix, totalSamples):
+def weightedVote(matrix, rangeSampleCA):
     answers = []
     matrixLength = len(matrix[0])
-    for x in range(totalSamples):
+    for x in rangeSampleCA:
         voteOne = 0
         voteZero = 0
         for i in range(matrixLength):
