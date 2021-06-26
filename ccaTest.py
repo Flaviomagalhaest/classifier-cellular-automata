@@ -63,24 +63,27 @@ class returnNeighboringClassifiersTest(unittest.TestCase):
 class returNeighborsMajorityRight(unittest.TestCase):
    def setUp(self):
       self.neighbors = [
-         {'name': 'vizinho1', 'score': 0.814, 'predict': [0, 0, 0]},
-         {'name': 'vizinho2', 'score': 0.846, 'predict': [0, 0, 1]},
-         {'name': 'vizinho3', 'score': 0.82, 'predict': [1, 0, 1]},
-         {'name': 'vizinho4', 'score': 0.82, 'predict': [1, 1, 1]},
+         {'name': 'vizinho1', 'score': 0.814, 'predict': [0, 0, 0], 'energy':2},
+         {'name': 'vizinho2', 'score': 0.846, 'predict': [0, 0, 1], 'energy':10},
+         {'name': 'vizinho3', 'score': 0.82, 'predict': [1, 0, 1], 'energy':5},
+         {'name': 'vizinho4', 'score': 0.82, 'predict': [1, 1, 1], 'energy':7},
          {}, {}
       ]
 
    def test_retorna_true_majority_neighbors_rigth(self):
-      response = cca.neighborsMajorityRight(self.neighbors, 1, 0)
-      self.assertTrue(response)
+      majority, average = cca.neighborsMajorityRight(self.neighbors, 1, 0)
+      self.assertTrue(majority)
+      self.assertTrue(average == 6)
 
    def test_retorna_false_majority_neighbors_wrong(self):
-      response = cca.neighborsMajorityRight(self.neighbors, 2, 0)
-      self.assertFalse(response)
+      majority, average = cca.neighborsMajorityRight(self.neighbors, 2, 0)
+      self.assertFalse(majority)
+      self.assertTrue(average == 6)
 
    def test_retorna_false_majority_neighbors_even(self):
-      response = cca.neighborsMajorityRight(self.neighbors, 0, 1)
-      self.assertFalse(response)
+      majority, average = cca.neighborsMajorityRight(self.neighbors, 0, 1)
+      self.assertFalse(majority)
+      self.assertTrue(average == 6)
    
 class testLostEnergyToLive(unittest.TestCase):
    def setUp(self):

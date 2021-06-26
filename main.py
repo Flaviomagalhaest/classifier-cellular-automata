@@ -82,7 +82,7 @@ for x in range (0, t):
                 neighbors = cca.returnNeighboringClassifiers(nrCells, nrCells, i, j, distance, matrix)
                 
                 #return of classifier of neighbors. True if majority right.
-                majorityNeighborsClassifier = cca.neighborsMajorityRight(neighbors, sample, Y_test_cf[sample])
+                majorityNeighborsClassifier, averageNeighbors = cca.neighborsMajorityRight(neighbors, sample, Y_test_cf[sample])
                 
                 #value of sample classified
                 if 'predict' in matrix[i][j]:
@@ -91,27 +91,26 @@ for x in range (0, t):
                     if cellSample == Y_test_cf[sample]:
                         #Classifier is right
                         if (majorityNeighborsClassifier):
-                            matrix[i][j]['energy'] = currentEnergy + 2
+                            matrix[i][j]['energy'] = cca.transactionRuleA(currentEnergy, averageNeighbors)
                         else:
-                            matrix[i][j]['energy'] = currentEnergy + 4
+                            matrix[i][j]['energy'] = cca.transactionRuleB(currentEnergy, averageNeighbors)
                     else:
                         #Classifier is wrong
                         if (majorityNeighborsClassifier):
-                            matrix[i][j]['energy'] = currentEnergy - 4
+                            matrix[i][j]['energy'] = cca.transactionRuleC(currentEnergy, averageNeighbors)
                         else:
-                            matrix[i][j]['energy'] = currentEnergy - 2
-        cca.lostEnergyToLive(matrix, liveEnergy, poolClassif)
+                            matrix[i][j]['energy'] = cca.transactionRuleD(currentEnergy, averageNeighbors)
+        cca.lostEnergyToLive(matrix, liveEnergy)
         # cca.printMatrix(matrix)
         cca.collectOrRelocateDeadCells(matrix, poolClassif, classif, cellRealocation)
 
-        # if cellRealocation:
         a = "a"
-    print(cca.returnMatrixOfIndividualItem(matrix, 'energy'))
+    print(str(x) + ": "+str(cca.returnMatrixOfIndividualItem(matrix, 'energy')))
 cca.printMatrix(matrix)
 answersList = cca.weightedVote(matrix, rangeSampleCA)
 score = cca.returnScore(Y_test_ca, answersList)
 print([[{l['name']: l['score']} if 'energy' in l else 0 for l in m] for m in matrixOrigin])
+print("Maior score encontrado: " + str(max([max([l['score'] for l in m]) for m in matrixOrigin])))
+print("Menor score encontrado: " + str(min([min([l['score'] for l in m]) for m in matrixOrigin])))
 print(score)
 a = "a"
-
-###### LEMBRAR DE SEPARAR A MASSA DE TESTE EM 3 ############

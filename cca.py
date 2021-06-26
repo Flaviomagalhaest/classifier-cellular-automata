@@ -1,11 +1,12 @@
 from numpy import true_divide
 import matplotlib.pyplot as plt
+import copy
 
 #Return a line of matrix
 def returnMatrixline(clf, keys, nrCells):
     returnList = []
     for x in range(nrCells):
-        returnList.append(clf[keys.pop(0)])
+        returnList.append(copy.deepcopy(clf[keys.pop(0)]))
     return returnList
 
 #Return all neighbors of a determined cell
@@ -23,19 +24,24 @@ def returnNeighboringClassifiers(totalX, totalY, x, y, distance, neighbors):
                 neighboringClassifiers.append(neighbors[i][j])
     return neighboringClassifiers
 
-#Return true if most neighbors got it right. false if wrong.
+#Return true if most neighbors got it right. false if wrong. false if even.
 def neighborsMajorityRight(neighbors, sampleIndex, answer):
     sumRight = 0
-    totalNeighbors = len(neighbors)
+    sumEnergy = 0
+    averageEnergy = 0
+    totalNeighbors = len(neighbors)    
     for i in range(len(neighbors)):
         if ('predict' in neighbors[i]):          
+            sumEnergy += neighbors[i]['energy']
             sampleCell = neighbors[i]['predict'][sampleIndex]
             if sampleCell == answer:
                 sumRight += 1
         else: totalNeighbors -= 1
+    if (totalNeighbors > 0):
+        averageEnergy = sumEnergy/totalNeighbors
     if sumRight > (totalNeighbors/2):
-        return True
-    else: return False
+        return True, averageEnergy
+    else: return False, averageEnergy
 
 #Method to subtract energy from live cell
 def lostEnergyToLive(matrix, liveEnergy):
@@ -43,7 +49,7 @@ def lostEnergyToLive(matrix, liveEnergy):
     for i in range(matrixLength):
         for j in range(matrixLength):
             if 'energy' in matrix[i][j]:
-                matrix[i][j]['energy'] = matrix[i][j]['energy'] - liveEnergy
+                matrix[i][j]['energy'] = round(matrix[i][j]['energy'] - liveEnergy, 1)
 
 
 #Method to fill the empty spaces of matrix (from dead cells)
@@ -52,10 +58,16 @@ def collectOrRelocateDeadCells(matrix, pool=[], classifiers={}, cellRealocation=
     for i in range(matrixLength):
         for j in range(matrixLength):
             if ('energy' in matrix[i][j]) and (matrix[i][j]['energy'] <= 0):
-                print("Classifier "+matrix[i][j]['name']+" died. "+pool[0]+" took the place.")
                 pool.append(matrix[i][j]['name'])
                 if cellRealocation:
-                    matrix[i][j] = classifiers[pool.pop(0)]
+                    print("Classifier "+matrix[i][j]['name']+" died. "+pool[0]+" took the place.")
+                    matrix[i][j] = copy.deepcopy(classifiers[pool.pop(0)])
+                    
+                    
+                    # matrix[i][j]['energy'] = 50
+
+
+
                 else: matrix[i][j] = {}
 
 #Return list of answers of matrix using weighted vote for each samples
@@ -88,6 +100,21 @@ def returnScore(samples, generatedList):
             hitSum += 1
     return hitSum/total
         
+def transactionRuleA(currentEnergy, averageNeighbors):
+    # return currentEnergy + 2
+    return round(currentEnergy + (averageNeighbors * 0.0165),1)
+
+def transactionRuleB(currentEnergy, averageNeighbors):
+    # return currentEnergy + 4
+    return round(currentEnergy + (averageNeighbors * 0.0465),1)
+
+def transactionRuleC(currentEnergy, averageNeighbors):
+    # return currentEnergy - 4
+    return round(currentEnergy - (averageNeighbors * 0.1),1)
+
+def transactionRuleD(currentEnergy, averageNeighbors):
+    # return currentEnergy - 2
+    return round(currentEnergy - (averageNeighbors * 0.05),1)
 
 
 def returnMatrixOfIndividualItem(matrix, item):
