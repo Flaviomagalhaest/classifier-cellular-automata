@@ -69,47 +69,44 @@ for m in range(nrCells):
     matrix.append(cca.returnMatrixline(classif, poolClassif, nrCells))
 matrixOrigin = copy.deepcopy(matrix)
 
-def algoritmCCA(learning=True):
-    #training iteration
-    for x in range (0, t):
-        for sample in range(len(Y_test_cf)):
-            #get each cells of matrix
-            for i in range(nrCells):
-                for j in range(nrCells):
-                    neighbors = []
-                    #neighbors of current cell
-                    neighbors = cca.returnNeighboringClassifiers(nrCells, nrCells, i, j, distance, matrix)
-                    
-                    #return of classifier of neighbors. True if majority right.
-                    majorityNeighborsClassifier, averageNeighborsEnergy = cca.neighborsMajorityRight(neighbors, sample, Y_test_cf[sample])
-                    
-                    #value of sample classified
-                    if 'predict' in matrix[i][j]:
-                        cellSample = matrix[i][j]['predict'][sample]
-                        currentEnergy = copy.deepcopy(matrix[i][j]['energy'])
-                        if cellSample == Y_test_cf[sample]:
-                            #Classifier is right
-                            if (majorityNeighborsClassifier):
-                                matrix[i][j]['energy'] = cca.transactionRuleA(currentEnergy, averageNeighborsEnergy)
-                            else:
-                                matrix[i][j]['energy'] = cca.transactionRuleB(currentEnergy, averageNeighborsEnergy)
+#training iteration
+for x in range (0, t):
+    for sample in range(len(Y_test_cf)):
+        #get each cells of matrix
+        for i in range(nrCells):
+            for j in range(nrCells):
+                neighbors = []
+                #neighbors of current cell
+                neighbors = cca.returnNeighboringClassifiers(nrCells, nrCells, i, j, distance, matrix)
+                
+                #return of classifier of neighbors. True if majority right.
+                majorityNeighborsClassifier, averageNeighborsEnergy = cca.neighborsMajorityRight(neighbors, sample, Y_test_cf[sample])
+                
+                #value of sample classified
+                if 'predict' in matrix[i][j]:
+                    cellSample = matrix[i][j]['predict'][sample]
+                    currentEnergy = copy.deepcopy(matrix[i][j]['energy'])
+                    if cellSample == Y_test_cf[sample]:
+                        #Classifier is right
+                        if (majorityNeighborsClassifier):
+                            matrix[i][j]['energy'] = cca.transactionRuleA(currentEnergy, averageNeighborsEnergy)
                         else:
-                            #Classifier is wrong
-                            if (majorityNeighborsClassifier):
-                                matrix[i][j]['energy'] = cca.transactionRuleC(currentEnergy, averageNeighborsEnergy)
-                            else:
-                                matrix[i][j]['energy'] = cca.transactionRuleD(currentEnergy, averageNeighborsEnergy)
-                        a = 'a'
-                    cca.collectOrRelocateDeadCells(matrix, poolClassif, classif, learning, averageNeighborsEnergy)
+                            matrix[i][j]['energy'] = cca.transactionRuleB(currentEnergy, averageNeighborsEnergy)
+                    else:
+                        #Classifier is wrong
+                        if (majorityNeighborsClassifier):
+                            matrix[i][j]['energy'] = cca.transactionRuleC(currentEnergy, averageNeighborsEnergy)
+                        else:
+                            matrix[i][j]['energy'] = cca.transactionRuleD(currentEnergy, averageNeighborsEnergy)
                     a = 'a'
-            # cca.lostEnergyToLive(matrix, liveEnergy)
-            # cca.printMatrix(matrix)
-            # cca.collectOrRelocateDeadCells(matrix, poolClassif, classif, cellRealocation, averageNeighborsEnergy)
-
+                cca.collectOrRelocateDeadCells(matrix, poolClassif, classif, cellRealocation, averageNeighborsEnergy)
+                a = 'a'
+        # cca.lostEnergyToLive(matrix, liveEnergy)
         # cca.printMatrix(matrix)
-        print(str(x) + ": "+str(cca.returnMatrixOfIndividualItem(matrix, 'energy')))
+        # cca.collectOrRelocateDeadCells(matrix, poolClassif, classif, cellRealocation, averageNeighborsEnergy)
 
-algoritmCCA()
+    # cca.printMatrix(matrix)
+    print(str(x) + ": "+str(cca.returnMatrixOfIndividualItem(matrix, 'energy')))
 cca.printMatrix(matrix)
 answersList = cca.weightedVote(matrix, rangeSampleCA)
 score = cca.returnScore(Y_test_ca, answersList)
@@ -117,16 +114,4 @@ print([[{l['name']: l['score']} if 'energy' in l else 0 for l in m] for m in mat
 print("Maior score encontrado: " + str(max([max([l['score'] for l in m]) for m in matrixOrigin])))
 print("Menor score encontrado: " + str(min([min([l['score'] for l in m]) for m in matrixOrigin])))
 print(score)
-
-
-cca.restartEnergyMatrix(matrix, energyInit)
-algoritmCCA(False)
-cca.printMatrix(matrix)
-answersList = cca.weightedVote(matrix, rangeSampleCA)
-score = cca.returnScore(Y_test_ca, answersList)
-print([[{l['name']: l['score']} if 'energy' in l else 0 for l in m] for m in matrixOrigin])
-print("Maior score encontrado: " + str(max([max([l['score'] for l in m]) for m in matrixOrigin])))
-print("Menor score encontrado: " + str(min([min([l['score'] for l in m]) for m in matrixOrigin])))
-print(score)
-
 a = "a"

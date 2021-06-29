@@ -38,7 +38,7 @@ def neighborsMajorityRight(neighbors, sampleIndex, answer):
                 sumRight += 1
         else: totalNeighbors -= 1
     if (totalNeighbors > 0):
-        averageEnergy = sumEnergy/totalNeighbors
+        averageEnergy = round(sumEnergy/totalNeighbors,2)
     if sumRight > (totalNeighbors/2):
         return True, averageEnergy
     else: return False, averageEnergy
@@ -49,11 +49,11 @@ def lostEnergyToLive(matrix, liveEnergy):
     for i in range(matrixLength):
         for j in range(matrixLength):
             if 'energy' in matrix[i][j]:
-                matrix[i][j]['energy'] = round(matrix[i][j]['energy'] - liveEnergy, 1)
+                matrix[i][j]['energy'] = round(matrix[i][j]['energy'] - liveEnergy, 2)
 
 
 #Method to fill the empty spaces of matrix (from dead cells)
-def collectOrRelocateDeadCells(matrix, pool=[], classifiers={}, cellRealocation=False):
+def collectOrRelocateDeadCells(matrix, pool=[], classifiers={}, cellRealocation=False, initEnergy=100):
     matrixLength = len(matrix[0])
     for i in range(matrixLength):
         for j in range(matrixLength):
@@ -62,12 +62,7 @@ def collectOrRelocateDeadCells(matrix, pool=[], classifiers={}, cellRealocation=
                 if cellRealocation:
                     print("Classifier "+matrix[i][j]['name']+" died. "+pool[0]+" took the place.")
                     matrix[i][j] = copy.deepcopy(classifiers[pool.pop(0)])
-                    
-                    
-                    # matrix[i][j]['energy'] = 50
-
-
-
+                    matrix[i][j]['energy'] = initEnergy
                 else: matrix[i][j] = {}
 
 #Return list of answers of matrix using weighted vote for each samples
@@ -101,20 +96,26 @@ def returnScore(samples, generatedList):
     return hitSum/total
         
 def transactionRuleA(currentEnergy, averageNeighbors):
-    # return currentEnergy + 2
-    return round(currentEnergy + (averageNeighbors * 0.0165),1)
+    return round(currentEnergy + 4, 2)
+    # return round(currentEnergy + (averageNeighbors * 0.001),1)
 
 def transactionRuleB(currentEnergy, averageNeighbors):
-    # return currentEnergy + 4
-    return round(currentEnergy + (averageNeighbors * 0.0465),1)
+    return round(currentEnergy + 8, 2)
+    # return round(currentEnergy + (averageNeighbors * 0.005),1)
 
 def transactionRuleC(currentEnergy, averageNeighbors):
     # return currentEnergy - 4
-    return round(currentEnergy - (averageNeighbors * 0.1),1)
+    return round(currentEnergy - (averageNeighbors * 0.03),2)
 
 def transactionRuleD(currentEnergy, averageNeighbors):
     # return currentEnergy - 2
-    return round(currentEnergy - (averageNeighbors * 0.05),1)
+    return round(currentEnergy - (averageNeighbors * 0.015),2)
+
+def restartEnergyMatrix(matrix, energy=100):
+    matrixLength = len(matrix[0])
+    for i in range(matrixLength):
+        for j in range(matrixLength):
+            matrix[i][j]['energy'] = energy
 
 
 def returnMatrixOfIndividualItem(matrix, item):
