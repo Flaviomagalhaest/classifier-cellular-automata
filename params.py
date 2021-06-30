@@ -8,7 +8,7 @@ class Params:
       obj['sample'] = 0          
       obj['liveEnergy'] = 1                     #Value of energy that cell wil lost per iteration
       obj['cellRealocation'] = True             #Flag to realocate new classifier in dead cells
-      obj['totalSamples'] = 1200                #Total of samples used in training e testing
+      obj['totalSamples'] = 1500                #Total of samples used in training e testing
       obj['sampleSize'] = 0.66666               #Size of samples used in training e testing
-      obj['rangeSampleCA'] = range(400,800)     #Range of test samples used to test CCA
+      obj['rangeSampleCA'] = range(500,1000)     #Range of test samples used to test CCA
       return obj  

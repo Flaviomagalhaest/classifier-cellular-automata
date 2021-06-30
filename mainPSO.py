@@ -67,20 +67,15 @@ for m in range(nrCells):
     matrix.append(cca.returnMatrixline(classif, poolClassif, nrCells))
 matrixOrigin = copy.deepcopy(matrix)
 
-params['TRA'] = 45
-params['TRB'] = 52
-params['TRC'] = 0.193
-params['TRD'] = 0.014
 
-
-cca.algorithmCCA(matrix, Y_test_cf, nrCells, distance, poolClassif, classif, params, t, True)
-cca.printMatrix(matrix)
-answersList = cca.weightedVote(matrix, rangeSampleCA)
-score = cca.returnScore(Y_test_ca, answersList)
-print([{classif[c]['name']: classif[c]['score']} for c in classif])
-print("Maior score encontrado: " + str(max([classif[c]['score'] for c in classif])))
-print("Menor score encontrado: " + str(min([classif[c]['score'] for c in classif])))
-print(score)
+# cca.algorithmCCA(matrix, Y_test_cf, nrCells, distance, poolClassif, classif, t, True)
+# cca.printMatrix(matrix)
+# answersList = cca.weightedVote(matrix, rangeSampleCA)
+# score = cca.returnScore(Y_test_ca, answersList)
+# print([{classif[c]['name']: classif[c]['score']} for c in classif])
+# print("Maior score encontrado: " + str(max([classif[c]['score'] for c in classif])))
+# print("Menor score encontrado: " + str(min([classif[c]['score'] for c in classif])))
+# print(score)
 
 
 # cca.restartEnergyMatrix(matrix, energyInit)
@@ -93,25 +88,27 @@ print(score)
 # print("Menor score encontrado: " + str(min([min([l['score'] for l in m]) for m in matrixOrigin])))
 # print(score)
 
-# ############ PSO ###############
-# # params ###
-# qtdPop = 10
-# iteration = 50
-# coefAcceleration = 1
-# ############
-# bestResult = {}
-# population = pso.initPopulation(qtdPop, matrix)
-# for i in range(iteration):
-#     for j in range(len(population)):
-#         print("treinando matriz para o individuo "+str(j)+" iteracao: "+str(i))
-#         cca.algorithmCCA(population[j]['matrix'], Y_test_cf, nrCells, distance, poolClassif, classif, population[j]['params'], t, True)
-#     pso.attPbest(population, rangeSampleCA, Y_test_ca)
-#     gbest = pso.attGbest(population)
-#     bestResult = pso.attBestResult(gbest, bestResult)
-#     pso.attPosition(population, coefAcceleration, gbest)
-# print([{classif[c]['name']: classif[c]['score']} for c in classif])
-# print("Maior score encontrado: " + str(max([classif[c]['score'] for c in classif])))
-# print("Menor score encontrado: " + str(min([classif[c]['score'] for c in classif])))
-# print(bestResult['params'])
-# print(bestResult['score'])
-# a = "a"
+############ PSO ###############
+# params ###
+qtdPop = 10
+iteration = 50
+coefAcceleration = 1
+############
+bestResult = {}
+population = pso.initPopulation(qtdPop, matrix)
+try:
+    for i in range(iteration):
+        for j in range(len(population)):
+            print("treinando matriz para o individuo "+str(j)+" iteracao: "+str(i))
+            cca.algorithmCCA(population[j]['matrix'], Y_test_cf, nrCells, distance, poolClassif, classif, population[j]['params'], t, True)
+        pso.attPbest(population, rangeSampleCA, Y_test_ca)
+        gbest = pso.attGbest(population)
+        bestResult = pso.attBestResult(gbest, bestResult)
+        pso.attPosition(population, coefAcceleration, gbest)
+finally: 
+    print([{classif[c]['name']: classif[c]['score']} for c in classif])
+    print("Maior score encontrado: " + str(max([classif[c]['score'] for c in classif])))
+    print("Menor score encontrado: " + str(min([classif[c]['score'] for c in classif])))
+    print(bestResult['params'])
+    print(bestResult['score'])
+    a = "a"

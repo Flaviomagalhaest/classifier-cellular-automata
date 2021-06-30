@@ -60,7 +60,7 @@ def collectOrRelocateDeadCells(matrix, pool=[], classifiers={}, cellRealocation=
             if ('energy' in matrix[i][j]) and (matrix[i][j]['energy'] <= 0):
                 pool.append(matrix[i][j]['name'])
                 if cellRealocation:
-                    print("Classifier "+matrix[i][j]['name']+" died. "+pool[0]+" took the place.")
+                    # print("Classifier "+matrix[i][j]['name']+" died. "+pool[0]+" took the place.")
                     matrix[i][j] = copy.deepcopy(classifiers[pool.pop(0)])
                     matrix[i][j]['energy'] = initEnergy
                 else: matrix[i][j] = {}
@@ -95,21 +95,21 @@ def returnScore(samples, generatedList):
             hitSum += 1
     return hitSum/total
         
-def transactionRuleA(currentEnergy, averageNeighbors):
-    return round(currentEnergy + 4, 2)
+def transactionRuleA(currentEnergy, averageNeighbors, x):
+    return round(currentEnergy + x, 2)
     # return round(currentEnergy + (averageNeighbors * 0.001),1)
 
-def transactionRuleB(currentEnergy, averageNeighbors):
-    return round(currentEnergy + 8, 2)
+def transactionRuleB(currentEnergy, averageNeighbors, x):
+    return round(currentEnergy + x, 2)
     # return round(currentEnergy + (averageNeighbors * 0.005),1)
 
-def transactionRuleC(currentEnergy, averageNeighbors):
+def transactionRuleC(currentEnergy, averageNeighbors, x):
     # return currentEnergy - 4
-    return round(currentEnergy - (averageNeighbors * 0.03),2)
+    return round(currentEnergy - (averageNeighbors * x),2)
 
-def transactionRuleD(currentEnergy, averageNeighbors):
+def transactionRuleD(currentEnergy, averageNeighbors, x):
     # return currentEnergy - 2
-    return round(currentEnergy - (averageNeighbors * 0.015),2)
+    return round(currentEnergy - (averageNeighbors * x),2)
 
 def restartEnergyMatrix(matrix, energy=100):
     matrixLength = len(matrix[0])
@@ -117,6 +117,39 @@ def restartEnergyMatrix(matrix, energy=100):
         for j in range(matrixLength):
             matrix[i][j]['energy'] = energy
 
+def algorithmCCA(matrix, Y_test_cf, nrCells, distance, pool, classif, params, qtdIteration=10, learning=True):
+    #training iteration
+    for x in range (0, qtdIteration):
+        for sample in range(len(Y_test_cf)):
+            #get each cells of matrix
+            for i in range(nrCells):
+                for j in range(nrCells):
+                    neighbors = []
+                    #neighbors of current cell
+                    neighbors = returnNeighboringClassifiers(nrCells, nrCells, i, j, distance, matrix)
+                    
+                    #return of classifier of neighbors. True if majority right.
+                    majorityNeighborsClassifier, averageNeighborsEnergy = neighborsMajorityRight(neighbors, sample, Y_test_cf[sample])
+                    
+                    #value of sample classified
+                    if 'predict' in matrix[i][j]:
+                        cellSample = matrix[i][j]['predict'][sample]
+                        currentEnergy = copy.deepcopy(matrix[i][j]['energy'])
+                        if cellSample == Y_test_cf[sample]:
+                            #Classifier is right
+                            if (majorityNeighborsClassifier):
+                                matrix[i][j]['energy'] = transactionRuleA(currentEnergy, averageNeighborsEnergy, params['TRA'])
+                            else:
+                                matrix[i][j]['energy'] = transactionRuleB(currentEnergy, averageNeighborsEnergy, params['TRB'])
+                        else:
+                            #Classifier is wrong
+                            if (majorityNeighborsClassifier):
+                                matrix[i][j]['energy'] = transactionRuleC(currentEnergy, averageNeighborsEnergy, params['TRC'])
+                            else:
+                                matrix[i][j]['energy'] = transactionRuleD(currentEnergy, averageNeighborsEnergy, params['TRD'])
+                        a = 'a'
+                    collectOrRelocateDeadCells(matrix, pool, classif, learning, averageNeighborsEnergy)
+        # print("iteracao "+str(x))
 
 def returnMatrixOfIndividualItem(matrix, item):
     return [[l[item] if 'energy' in l else 0 for l in m] for m in matrix]
