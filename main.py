@@ -29,13 +29,13 @@ sample                  = params['sample']
 liveEnergy              = params['liveEnergy']
 cellRealocation         = params['cellRealocation']
 totalSamples            = params['totalSamples']
-sampleSize              = params['sampleSize']
+testSamples              = params['testSamples']
 rangeSampleCA           = params['rangeSampleCA']
 ###########################
 
 ####### TEST Sample ############
-X, Y = make_classification(n_samples=totalSamples, n_classes=2, n_features=5, n_redundant=0, random_state=1)
-X_train, X_test, Y_train, Y_test = train_test_split(X, Y, test_size=sampleSize)
+X, Y = make_classification(n_samples=totalSamples, n_classes=2, n_features=100, n_redundant=0, random_state=1)
+X_train, X_test, Y_train, Y_test = train_test_split(X, Y, test_size=testSamples)
 X_test_cf = list(X_test[0:500])     #Sample test to train Celullar automata
 Y_test_cf = list(Y_test[0:500])     #Sample test to train Celullar automata
 X_test_ca = list(X_test[500:1000])   #Sample test to validate Celullar automata
@@ -47,12 +47,14 @@ names, classifiers = ClassifiersClass.getAll(ensembleFlag=True)
 
 classif = {}
 for name, clf in zip(names, classifiers):
-    print("Treinando "+name)
     clf.fit(X_train, Y_train)
     print("Clasificador "+name+" treinado.")
     c = {}
     c['name'] = name
     c['predict'] = clf.predict(X_test)
+    c['prob'] = clf.predict_proba(X_test)
+    # c['confidence'] = clf.decision_function(X_test)
+    # c['confAvg'], c['confAvgWhenWrong'], c['confAvgWhenRight'] =  cca.confidenceInClassification(c['predict'], Y_test, c['confidence'])
     c['score'] = clf.score(X_test_ca, Y_test_ca)
     c['energy'] = energyInit
     classif[name] = c
@@ -67,10 +69,10 @@ for m in range(nrCells):
     matrix.append(cca.returnMatrixline(classif, poolClassif, nrCells))
 matrixOrigin = copy.deepcopy(matrix)
 
-params['TRA'] = 45
-params['TRB'] = 52
-params['TRC'] = 0.193
-params['TRD'] = 0.014
+params['TRA'] = 2
+params['TRB'] = 4
+params['TRC'] = 0.05
+params['TRD'] = 0.025
 
 
 cca.algorithmCCA(matrix, Y_test_cf, nrCells, distance, poolClassif, classif, params, t, True)
@@ -82,16 +84,25 @@ print("Maior score encontrado: " + str(max([classif[c]['score'] for c in classif
 print("Menor score encontrado: " + str(min([classif[c]['score'] for c in classif])))
 print(score)
 
+answersList2 = cca.weightedVote2(matrix, rangeSampleCA)
+score2 = cca.returnScore(Y_test_ca, answersList2)
+print(score2)
+
+params['TRA'] = 0
+params['TRB'] = 0
+params['TRC'] = 0.6
+params['TRD'] = 0.8
+
+answersListInference = cca.inferenceAlgorithm(matrix, nrCells, distance, params, rangeSampleCA, 100)
+score3 = cca.returnScore(Y_test_ca, answersListInference)
+print(score3)
 
 # cca.restartEnergyMatrix(matrix, energyInit)
-# algoritmCCA(False)
+# cca.algorithmCCA(matrix, Y_test_cf, nrCells, distance, poolClassif, classif, params, t, False)
 # cca.printMatrix(matrix)
 # answersList = cca.weightedVote(matrix, rangeSampleCA)
-# score = cca.returnScore(Y_test_ca, answersList)
-# print([[{l['name']: l['score']} if 'energy' in l else 0 for l in m] for m in matrixOrigin])
-# print("Maior score encontrado: " + str(max([max([l['score'] for l in m]) for m in matrixOrigin])))
-# print("Menor score encontrado: " + str(min([min([l['score'] for l in m]) for m in matrixOrigin])))
-# print(score)
+# score4 = cca.returnScore(Y_test_ca, answersList)
+# print(score4)
 
 # ############ PSO ###############
 # # params ###

@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 import random, cca, copy, pso
 
 from classifiers import Classifiers
-from params import Params
+from paramsPSO import Params
 
 from sklearn.datasets import make_classification
 from sklearn.model_selection import train_test_split
@@ -29,17 +29,17 @@ sample                  = params['sample']
 liveEnergy              = params['liveEnergy']
 cellRealocation         = params['cellRealocation']
 totalSamples            = params['totalSamples']
-sampleSize              = params['sampleSize']
+testSamples              = params['testSamples']
 rangeSampleCA           = params['rangeSampleCA']
 ###########################
 
 ####### TEST Sample ############
-X, Y = make_classification(n_samples=totalSamples, n_classes=2, n_features=5, n_redundant=0, random_state=1)
-X_train, X_test, Y_train, Y_test = train_test_split(X, Y, test_size=sampleSize)
-X_test_cf = list(X_test[0:500])     #Sample test to train Celullar automata
-Y_test_cf = list(Y_test[0:500])     #Sample test to train Celullar automata
-X_test_ca = list(X_test[500:1000])   #Sample test to validate Celullar automata
-Y_test_ca = list(Y_test[500:1000])   #Sample test to validate Celullar automata
+X, Y = make_classification(n_samples=totalSamples, n_classes=2, n_features=100, n_redundant=0, random_state=1)
+X_train, X_test, Y_train, Y_test = train_test_split(X, Y, test_size=testSamples)
+X_test_cf = list(X_test[0:50])     #Sample test to train Celullar automata
+Y_test_cf = list(Y_test[0:50])     #Sample test to train Celullar automata
+X_test_ca = list(X_test[50:100])   #Sample test to validate Celullar automata
+Y_test_ca = list(Y_test[50:100])   #Sample test to validate Celullar automata
 
 ####### CLASSIFIERS ############
 ClassifiersClass = Classifiers()
@@ -47,7 +47,6 @@ names, classifiers = ClassifiersClass.getAll(ensembleFlag=True)
 
 classif = {}
 for name, clf in zip(names, classifiers):
-    print("Treinando "+name)
     clf.fit(X_train, Y_train)
     print("Clasificador "+name+" treinado.")
     c = {}
@@ -67,30 +66,24 @@ for m in range(nrCells):
     matrix.append(cca.returnMatrixline(classif, poolClassif, nrCells))
 matrixOrigin = copy.deepcopy(matrix)
 
-
-# cca.algorithmCCA(matrix, Y_test_cf, nrCells, distance, poolClassif, classif, t, True)
-# cca.printMatrix(matrix)
-# answersList = cca.weightedVote(matrix, rangeSampleCA)
-# score = cca.returnScore(Y_test_ca, answersList)
-# print([{classif[c]['name']: classif[c]['score']} for c in classif])
-# print("Maior score encontrado: " + str(max([classif[c]['score'] for c in classif])))
-# print("Menor score encontrado: " + str(min([classif[c]['score'] for c in classif])))
-# print(score)
+params['TRA'] = 2
+params['TRB'] = 4
+params['TRC'] = 0.05
+params['TRD'] = 0.025
 
 
-# cca.restartEnergyMatrix(matrix, energyInit)
-# algoritmCCA(False)
-# cca.printMatrix(matrix)
-# answersList = cca.weightedVote(matrix, rangeSampleCA)
-# score = cca.returnScore(Y_test_ca, answersList)
-# print([[{l['name']: l['score']} if 'energy' in l else 0 for l in m] for m in matrixOrigin])
-# print("Maior score encontrado: " + str(max([max([l['score'] for l in m]) for m in matrixOrigin])))
-# print("Menor score encontrado: " + str(min([min([l['score'] for l in m]) for m in matrixOrigin])))
-# print(score)
+cca.algorithmCCA(matrix, Y_test_cf, nrCells, distance, poolClassif, classif, params, t, True)
+cca.printMatrix(matrix)
+answersList = cca.weightedVote(matrix, rangeSampleCA)
+score = cca.returnScore(Y_test_ca, answersList)
+print([{classif[c]['name']: classif[c]['score']} for c in classif])
+print("Maior score encontrado: " + str(max([classif[c]['score'] for c in classif])))
+print("Menor score encontrado: " + str(min([classif[c]['score'] for c in classif])))
+print(score)
 
 ############ PSO ###############
 # params ###
-qtdPop = 10
+qtdPop = 20
 iteration = 50
 coefAcceleration = 1
 ############
@@ -99,9 +92,10 @@ population = pso.initPopulation(qtdPop, matrix)
 try:
     for i in range(iteration):
         for j in range(len(population)):
-            print("treinando matriz para o individuo "+str(j)+" iteracao: "+str(i))
-            cca.algorithmCCA(population[j]['matrix'], Y_test_cf, nrCells, distance, poolClassif, classif, population[j]['params'], t, True)
-        pso.attPbest(population, rangeSampleCA, Y_test_ca)
+            print("matriz de inferencia para o individuo "+str(j)+" iteracao: "+str(i))
+            answersListInference = cca.inferenceAlgorithm(population[j]['matrix'], nrCells, distance, population[j]['params'], rangeSampleCA, 100)
+            scoreInference = cca.returnScore(Y_test_ca, answersListInference)
+            pso.attPbest(population[j],j, scoreInference)
         gbest = pso.attGbest(population)
         bestResult = pso.attBestResult(gbest, bestResult)
         pso.attPosition(population, coefAcceleration, gbest)
@@ -112,3 +106,20 @@ finally:
     print(bestResult['params'])
     print(bestResult['score'])
     a = "a"
+
+# try:
+#     for i in range(iteration):
+#         for j in range(len(population)):
+#             print("treinando matriz para o individuo "+str(j)+" iteracao: "+str(i))
+#             cca.algorithmCCA(population[j]['matrix'], Y_test_cf, nrCells, distance, poolClassif, classif, population[j]['params'], t, True)
+#         pso.attPbest(population, rangeSampleCA, Y_test_ca)
+#         gbest = pso.attGbest(population)
+#         bestResult = pso.attBestResult(gbest, bestResult)
+#         pso.attPosition(population, coefAcceleration, gbest)
+# finally: 
+#     print([{classif[c]['name']: classif[c]['score']} for c in classif])
+#     print("Maior score encontrado: " + str(max([classif[c]['score'] for c in classif])))
+#     print("Menor score encontrado: " + str(min([classif[c]['score'] for c in classif])))
+#     print(bestResult['params'])
+#     print(bestResult['score'])
+#     a = "a"

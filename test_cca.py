@@ -71,19 +71,16 @@ class returNeighborsMajorityRight(unittest.TestCase):
       ]
 
    def test_retorna_true_majority_neighbors_rigth(self):
-      majority, average = cca.neighborsMajorityRight(self.neighbors, 1, 0)
+      majority = cca.neighborsMajorityRight(self.neighbors, 1, 0)
       self.assertTrue(majority)
-      self.assertTrue(average == 6)
 
    def test_retorna_false_majority_neighbors_wrong(self):
-      majority, average = cca.neighborsMajorityRight(self.neighbors, 2, 0)
+      majority = cca.neighborsMajorityRight(self.neighbors, 2, 0)
       self.assertFalse(majority)
-      self.assertTrue(average == 6)
 
    def test_retorna_false_majority_neighbors_even(self):
-      majority, average = cca.neighborsMajorityRight(self.neighbors, 0, 1)
+      majority = cca.neighborsMajorityRight(self.neighbors, 0, 1)
       self.assertFalse(majority)
-      self.assertTrue(average == 6)
    
 class testLostEnergyToLive(unittest.TestCase):
    def setUp(self):
@@ -208,6 +205,97 @@ class returnScore(unittest.TestCase):
       score = cca.returnScore(self.samples, list)
       self.assertTrue(score == 0)
 
+class neighborsMajorityClassify(unittest.TestCase):
+   def setUp(self):
+      obj1={'name': 'QDA', 'predict': [0, 1, 1, 0, 0], 'score': 0.91, 'energy': 100}
+      obj2={'name': 'Random_Forest_12_100', 'predict': [0, 1, 1, 1, 0], 'score': 0.908, 'energy': 50}
+      obj3={'name': 'LinearSVC_l2', 'predict': [0, 1, 0, 1, 0], 'score': 0.904, 'energy': 200}
+      obj4={'name': 'teste', 'predict': [1, 1, 0, 0, 1], 'score': 0.904, 'energy': 25}
+      self.neighbors = [obj1, obj2, obj3, obj4]
+   
+   def test_returnValueZero(self):
+      response = cca.neighborsMajorityClassify(self.neighbors, 0)
+      self.assertTrue(response == 0)
+
+   def test_returnValueOne(self):
+      response = cca.neighborsMajorityClassify(self.neighbors, 1)
+      self.assertTrue(response == 1)
+   
+   def test_returnValueZeroBecauseEnergy(self):
+      response = cca.neighborsMajorityClassify(self.neighbors, 2)
+      self.assertTrue(response == 0)
+
+   def test_returnValueOneBecauseEnergy(self):
+      response = cca.neighborsMajorityClassify(self.neighbors, 3)
+      self.assertTrue(response == 1)
+
+class neighborsEnergyAverage(unittest.TestCase):
+   def setUp(self):
+      obj1={'name': 'QDA', 'predict': [0, 1, 1, 0, 0], 'score': 0.91, 'energy': 100}
+      obj2={'name': 'Random_Forest_12_100', 'predict': [0, 1, 1, 1, 0], 'score': 0.908, 'energy': 300}
+      obj3={'name': 'LinearSVC_l2', 'predict': [0, 1, 0, 1, 0], 'score': 0.904, 'energy': 200}
+      obj4={}
+      self.neighbors = [obj1, obj2, obj3, obj4]
+   
+   def test_returnAverageWith3Neighbors(self):
+      response = cca.neighborsEnergyAverage(self.neighbors)
+      self.assertTrue(response == 200)
+
+class neighborsMajorityEnergy(unittest.TestCase):
+   def setUp(self):
+      obj1={'name': 'QDA', 'predict': [0, 1, 1, 0, 0], 'score': 0.91, 'energy': 100}
+      obj2={'name': 'Random_Forest_12_100', 'predict': [0, 1, 1, 1, 0], 'score': 0.908, 'energy': 300}
+      obj3={'name': 'LinearSVC_l2', 'predict': [0, 1, 0, 1, 0], 'score': 0.904, 'energy': 200}
+      obj4={}
+      self.neighbors = [obj1, obj2, obj3, obj4]
+
+   def test_returnEnergyToPredictZero(self):
+      energyWhoVoteZero, energyWhoVoteOne, energyTotal = cca.neighborsMajorityEnergy(self.neighbors, 0)
+      self.assertTrue(energyWhoVoteZero == 600)
+      self.assertTrue(energyWhoVoteOne == 0)
+      self.assertTrue(energyTotal == 600)
+
+   def test_returnEnergyToPredictOne(self):
+      energyWhoVoteZero, energyWhoVoteOne, energyTotal = cca.neighborsMajorityEnergy(self.neighbors, 1)
+      self.assertTrue(energyWhoVoteZero == 0)
+      self.assertTrue(energyWhoVoteOne == 600)
+      self.assertTrue(energyTotal == 600)
+
+   def test_returnEnergyToPredictOneAndZero(self):
+      energyWhoVoteZero, energyWhoVoteOne, energyTotal = cca.neighborsMajorityEnergy(self.neighbors, 2)
+      self.assertTrue(energyWhoVoteZero == 200)
+      self.assertTrue(energyWhoVoteOne == 400)
+      self.assertTrue(energyTotal == 600)
+
+class weightedVoteforSample(unittest.TestCase):
+   def setUp(self):
+      obj1={'name': 'QDA', 'predict': [0, 1, 1, 0, 0], 'score': 0.91, 'energy': 100}
+      obj2={'name': 'Random_Forest_12_100', 'predict': [0, 1, 1, 1, 1], 'score': 0.908, 'energy': 300}
+      obj3={'name': 'LinearSVC_l2', 'predict': [0, 1, 0, 1, 0], 'score': 0.904, 'energy': 200}
+      obj4={}
+      self.neighbors1 = [obj1, obj2]
+      self.neighbors2 = [obj3, obj4]
+      self.matrix = [self.neighbors1, self.neighbors2]
+
+   def test_returnVote0(self):
+      response = cca.weightedVoteforSample(self.matrix, 0)
+      self.assertTrue(response == 0)
+
+   def test_returnVote1(self):
+      response = cca.weightedVoteforSample(self.matrix, 1)
+      self.assertTrue(response == 1)
+
+   def test_returnVote1Divided(self):
+      response = cca.weightedVoteforSample(self.matrix, 2)
+      self.assertTrue(response == 1)
+
+   def test_returnVote1Divided2(self):
+      response = cca.weightedVoteforSample(self.matrix, 3)
+      self.assertTrue(response == 1)
+
+   def test_returnVote2(self):
+      response = cca.weightedVoteforSample(self.matrix, 4)
+      self.assertTrue(response == 2)
 
 # class testsClassifiers(unittest.TestCase):
 #    def test_classifier(self):

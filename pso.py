@@ -23,17 +23,26 @@ def initPopulation(qtdPop, matrix):
       population.append(p)
    return population
 
-def attPbest(population, rangeSampleCA, Y_test_ca):
-   for i in range(len(population)):
-      answersList = cca.weightedVote(population[i]['matrix'], rangeSampleCA)
-      population[i]['score'] = cca.returnScore(Y_test_ca, answersList)
-
-      if 'pbest' in population[i]:
-         if population[i]['score'] > population[i]['pbest']['score']:
-            print("individuo "+str(i)+" melhorou o pbest. score: "+str(population[i]['pbest']['score']))
-            population[i]['pbest'] = copy.deepcopy(population[i])
+def attPbest(indiv, index, score):
+      indiv['score'] = score
+      if 'pbest' in indiv:
+         if indiv['score'] > indiv['pbest']['score']:
+            print("individuo "+str(index)+" melhorou o pbest. score: "+str(indiv['pbest']['score']))
+            indiv['pbest'] = copy.deepcopy(indiv)
       else:
-         population[i]['pbest'] = copy.deepcopy(population[i])
+         indiv['pbest'] = copy.deepcopy(indiv)
+
+# def attPbest(population, rangeSampleCA, Y_test_ca):
+#    for i in range(len(population)):
+#       answersList = cca.weightedVote(population[i]['matrix'], rangeSampleCA)
+#       population[i]['score'] = cca.returnScore(Y_test_ca, answersList)
+
+#       if 'pbest' in population[i]:
+#          if population[i]['score'] > population[i]['pbest']['score']:
+#             print("individuo "+str(i)+" melhorou o pbest. score: "+str(population[i]['pbest']['score']))
+#             population[i]['pbest'] = copy.deepcopy(population[i])
+#       else:
+#          population[i]['pbest'] = copy.deepcopy(population[i])
 
 def attGbest(population):
    gbest = {}
