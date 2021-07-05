@@ -1,4 +1,5 @@
 from numpy import true_divide
+from graph import Graph
 import matplotlib.pyplot as plt
 import copy
 
@@ -57,6 +58,11 @@ def neighborsEnergyAverage(neighbors):
     else:
         return 0
 
+#Return average energy of all matrix
+def matrixEnergyAverage(matrix):
+    size = len(matrix[0])
+    return sum([sum([l['energy'] for l in m]) for m in matrix]) / (size * size)
+
 #Return what classifies the majority neighbors choose.
 def neighborsMajorityClassify(neighbors, sampleIndex):
     voteZero = ([c['predict'][sampleIndex] for c in neighbors]).count(0)
@@ -89,7 +95,7 @@ def collectOrRelocateDeadCells(matrix, pool=[], classifiers={}, cellRealocation=
             if ('energy' in matrix[i][j]) and (matrix[i][j]['energy'] <= 0):
                 pool.append(matrix[i][j]['name'])
                 if cellRealocation:
-                    # print("Classifier "+matrix[i][j]['name']+" died. "+pool[0]+" took the place.")
+                    print("Classifier "+matrix[i][j]['name']+" died. "+pool[0]+" took the place.")
                     matrix[i][j] = copy.deepcopy(classifiers[pool.pop(0)])
                     matrix[i][j]['energy'] = initEnergy
                 else: 
@@ -189,20 +195,34 @@ def returnScore(samples, generatedList):
             hitSum += 1
     return hitSum/total
         
-def transactionRuleA(currentEnergy, averageNeighbors, x):
-    return round(currentEnergy + x, 2)
+def transactionRuleA(currentEnergy, averageMatrix, x):
+    if (currentEnergy > 1000): 
+        sub = currentEnergy - (averageMatrix)
+        if sub > 0:
+            return round(currentEnergy + (sub/100), 2)
+        else:
+            return round(currentEnergy + x, 2)
+    else:
+        return round(currentEnergy + x, 2)
     # return round(currentEnergy + (averageNeighbors * 0.001),1)
 
-def transactionRuleB(currentEnergy, averageNeighbors, x):
-    return round(currentEnergy + x, 2)
+def transactionRuleB(currentEnergy, averageMatrix, x):
+    if (currentEnergy > 1000): 
+        sub = currentEnergy - (averageMatrix)
+        if sub > 0:
+            return round(currentEnergy + (sub/100), 2)
+        else:
+            return round(currentEnergy + x, 2)
+    else:
+        return round(currentEnergy + x, 2)
     # return round(currentEnergy + (averageNeighbors * 0.005),1)
 
 def transactionRuleC(currentEnergy, averageNeighbors, x):
-    # return round(currentEnergy + x, 2)
+    # return round(currentEnergy - x, 2)
     return round(currentEnergy - (averageNeighbors * x),2)
 
 def transactionRuleD(currentEnergy, averageNeighbors, x):
-    # return round(currentEnergy + x, 2)
+    # return round(currentEnergy - x, 2)
     return round(currentEnergy - (averageNeighbors * x),2)
 
 def restartEnergyMatrix(matrix, energy=100):
@@ -225,6 +245,7 @@ def algorithmCCA(matrix, Y_test_cf, nrCells, distance, pool, classif, params, qt
                     #return of classifier of neighbors. True if majority right.
                     majorityNeighborsClassifier = neighborsMajorityRight(neighbors, sample, Y_test_cf[sample])
                     averageNeighborsEnergy = neighborsEnergyAverage(neighbors)
+                    averageMatrixEnergy = matrixEnergyAverage(matrix)
                     
                     #value of sample classified
                     if 'predict' in matrix[i][j]:
@@ -233,9 +254,9 @@ def algorithmCCA(matrix, Y_test_cf, nrCells, distance, pool, classif, params, qt
                         if cellSample == Y_test_cf[sample]:
                             #Classifier is right
                             if (majorityNeighborsClassifier):
-                                matrix[i][j]['energy'] = transactionRuleA(currentEnergy, averageNeighborsEnergy, params['TRA'])
+                                matrix[i][j]['energy'] = transactionRuleA(currentEnergy, averageMatrixEnergy, params['TRA'])
                             else:
-                                matrix[i][j]['energy'] = transactionRuleB(currentEnergy, averageNeighborsEnergy, params['TRB'])
+                                matrix[i][j]['energy'] = transactionRuleB(currentEnergy, averageMatrixEnergy, params['TRB'])
                         else:
                             #Classifier is wrong
                             if (majorityNeighborsClassifier):
@@ -244,9 +265,10 @@ def algorithmCCA(matrix, Y_test_cf, nrCells, distance, pool, classif, params, qt
                                 matrix[i][j]['energy'] = transactionRuleD(currentEnergy, averageNeighborsEnergy, params['TRD'])
                         a = 'a'
                     collectOrRelocateDeadCells(matrix, pool, classif, learning, averageNeighborsEnergy)
-        if x == 9 or x == 99 or x==999:
-            printMatrix(matrix)
-        print("iteracao "+str(x))
+            Graph.printMatrixInteractiveEnergy(matrix)
+        print(returnMatrixOfIndividualItem(matrix, 'energy'))
+        Graph.printMatrixInteractiveEnergy(matrix)
+        # print("iteracao "+str(x))
 
 def inferenceAlgorithm(matrix, nrCells, distance, params, rangeSampleCA, qtdIteration=100):
     classification = []
@@ -262,9 +284,10 @@ def inferenceAlgorithm(matrix, nrCells, distance, params, rangeSampleCA, qtdIter
                         neighbors = returnNeighboringClassifiers(nrCells, nrCells, i, j, distance, matrixSample)
                         neighborsVote = neighborsMajorityClassify(neighbors, sample)
                         averageNeighborsEnergy = neighborsEnergyAverage(neighbors)
+                        averageMatrixEnergy = matrixEnergyAverage(matrix)
                         cellSample = matrixSample[i][j]['predict'][sample]
                         if cellSample == neighborsVote:
-                            matrixSample[i][j]['energy'] = transactionRuleA(matrixSample[i][j]['energy'], averageNeighborsEnergy, params['TRA'])
+                            matrixSample[i][j]['energy'] = transactionRuleA(matrixSample[i][j]['energy'], averageMatrixEnergy, params['TRA'])
                         else:
                             matrixSample[i][j]['energy'] = transactionRuleD(matrixSample[i][j]['energy'], averageNeighborsEnergy, params['TRD'])
                         if matrixSample[i][j]['energy'] <= 0:
@@ -293,7 +316,6 @@ def printMatrix(matrix):
             text = ax.text(j, i, energyMatrix[i][j], ha="center", va="center", color="w")
     fig.tight_layout()
     plt.show()
-a = "a"
 
 def returnIndexOfDifferenceInLists(list1, list2):
     listIndex = []

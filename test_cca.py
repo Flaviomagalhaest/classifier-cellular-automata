@@ -1,5 +1,6 @@
 import unittest
 import cca
+from graph import Graph
 
 import numpy as np
 from sklearn.linear_model import SGDClassifier
@@ -7,6 +8,7 @@ from sklearn.svm import SVC
 from sklearn.datasets import make_classification
 from sklearn.model_selection import train_test_split
 from sklearn.covariance import OAS
+
 
 #ARRUMAR CLASSES DOS TESTES UNITÁRIOS
 class returnNeighboringClassifiersTest(unittest.TestCase):
@@ -296,6 +298,29 @@ class weightedVoteforSample(unittest.TestCase):
    def test_returnVote2(self):
       response = cca.weightedVoteforSample(self.matrix, 4)
       self.assertTrue(response == 2)
+
+
+class testPlots(unittest.TestCase):
+   def setUp(self):
+      obj1={'name': 'QDA', 'predict': [0, 1, 1, 0, 0], 'score': 0.91, 'energy': 100}
+      obj2={'name': 'Random_Forest_12_100', 'predict': [0, 1, 1, 1, 1], 'score': 0.908, 'energy': 300}
+      obj3={'name': 'LinearSVC_l2', 'predict': [0, 1, 0, 1, 0], 'score': 0.904, 'energy': 200}
+      obj4={}
+      self.neighbors1 = [obj1, obj2]
+      self.neighbors2 = [obj3, obj4]
+      self.matrix = [self.neighbors1, self.neighbors2]
+
+   @unittest.skip("Graphic tests")
+   def test_testInteractiveMatrix(self):
+      Graph(self.matrix)
+      Graph.printMatrixInteractiveEnergy(self.matrix)
+      Graph.printMatrixInteractiveEnergy(self.matrix)
+      Graph.printMatrixInteractiveEnergy(self.matrix)
+      self.matrix[0][0]['energy'] = 700
+      self.matrix[0][1]['energy'] = 900
+      self.matrix[1][0]['energy'] = 50
+      Graph.printMatrixInteractiveEnergy(self.matrix)
+      a='a'
 
 # class testsClassifiers(unittest.TestCase):
 #    def test_classifier(self):

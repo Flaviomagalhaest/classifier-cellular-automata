@@ -4,6 +4,7 @@ import random, cca, copy, pso
 
 from classifiers import Classifiers
 from params import Params
+from graph import Graph
 
 from sklearn.datasets import make_classification
 from sklearn.model_selection import train_test_split
@@ -30,16 +31,17 @@ liveEnergy              = params['liveEnergy']
 cellRealocation         = params['cellRealocation']
 totalSamples            = params['totalSamples']
 testSamples              = params['testSamples']
-rangeSampleCA           = params['rangeSampleCA']
 ###########################
 
 ####### TEST Sample ############
 X, Y = make_classification(n_samples=totalSamples, n_classes=2, n_features=100, n_redundant=0, random_state=1)
 X_train, X_test, Y_train, Y_test = train_test_split(X, Y, test_size=testSamples)
-X_test_cf = list(X_test[0:500])     #Sample test to train Celullar automata
-Y_test_cf = list(Y_test[0:500])     #Sample test to train Celullar automata
-X_test_ca = list(X_test[500:1000])   #Sample test to validate Celullar automata
-Y_test_ca = list(Y_test[500:1000])   #Sample test to validate Celullar automata
+divTest = int(testSamples/2)
+rangeSampleCA  = range(divTest, testSamples)
+X_test_cf = list(X_test[0:divTest])     #Sample test to train Celullar automata
+Y_test_cf = list(Y_test[0:divTest])     #Sample test to train Celullar automata
+X_test_ca = list(X_test[divTest:testSamples])   #Sample test to validate Celullar automata
+Y_test_ca = list(Y_test[divTest:testSamples])   #Sample test to validate Celullar automata
 
 ####### CLASSIFIERS ############
 ClassifiersClass = Classifiers()
@@ -69,14 +71,24 @@ for m in range(nrCells):
     matrix.append(cca.returnMatrixline(classif, poolClassif, nrCells))
 matrixOrigin = copy.deepcopy(matrix)
 
+###### plot config ######
+# plt.ion()
+# fig, ax = plt.subplots()
+# cca.printMatrixInteractive(matrix, fig, ax)
+Graph(matrix)
+Graph.printMatrixInteractiveEnergy(matrix)
+#########################
+
 params['TRA'] = 2
 params['TRB'] = 4
 params['TRC'] = 0.05
 params['TRD'] = 0.025
+# params['TRC'] = 4
+# params['TRD'] = 2
 
 
 cca.algorithmCCA(matrix, Y_test_cf, nrCells, distance, poolClassif, classif, params, t, True)
-cca.printMatrix(matrix)
+Graph.printMatrixInteractiveEnergy(matrix, 'energy')
 answersList = cca.weightedVote(matrix, rangeSampleCA)
 score = cca.returnScore(Y_test_ca, answersList)
 print([{classif[c]['name']: classif[c]['score']} for c in classif])
@@ -89,9 +101,7 @@ score2 = cca.returnScore(Y_test_ca, answersList2)
 print(score2)
 
 params['TRA'] = 0
-params['TRB'] = 0
-params['TRC'] = 0.6
-params['TRD'] = 0.8
+params['TRD'] = 0.6
 
 answersListInference = cca.inferenceAlgorithm(matrix, nrCells, distance, params, rangeSampleCA, 100)
 score3 = cca.returnScore(Y_test_ca, answersListInference)
