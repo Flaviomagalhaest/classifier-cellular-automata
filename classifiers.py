@@ -113,8 +113,8 @@ class Classifiers:
       classifiers.append(NuSVC(kernel="rbf",gamma=2, probability=True))
       classifiers.append(NuSVC(kernel='sigmoid', probability=True))
       classifiers.append(NuSVC(decision_function_shape='ovo', probability=True))
-      # classifiers.append(LinearSVC())
-      # classifiers.append(LinearSVC(penalty='l2', loss='hinge'))
+      classifiers.append(LinearSVC())
+      classifiers.append(LinearSVC(penalty='l2', loss='hinge'))
       return names, classifiers
    
    def getTree(self, names=[], classifiers=[]):

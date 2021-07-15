@@ -1,5 +1,6 @@
 from numpy import true_divide
-from graph import Graph
+# from graph import Graph
+from dataGenerate import DataGenerate
 import matplotlib.pyplot as plt
 import copy
 
@@ -7,7 +8,8 @@ import copy
 def returnMatrixline(clf, keys, nrCells):
     returnList = []
     for x in range(nrCells):
-        returnList.append(copy.deepcopy(clf[keys.pop(0)]))
+        # returnList.append(copy.deepcopy(clf[keys.pop(0)]))
+        returnList.append(clf[keys.pop(0)])
     return returnList
 
 #Return all neighbors of a determined cell
@@ -41,10 +43,10 @@ def neighborsMajorityRight(neighbors, sampleIndex, answer):
     else: return False
 
 def neighborsMajorityEnergy(neighbors, sampleIndex):
-    # energyWhoVoteZero = sum([c['energy'] for c in neighbors if 'predict' in c and c['predict'][sampleIndex] == 0])
-    # energyWhoVoteOne = sum([c['energy'] for c in neighbors if 'predict' in c and c['predict'][sampleIndex] == 1])
-    energyWhoVoteZero = sum([c['energy']*c['prob'][sampleIndex][0] for c in neighbors if 'predict' in c and c['predict'][sampleIndex] == 0])
-    energyWhoVoteOne = sum([c['energy']*c['prob'][sampleIndex][1] for c in neighbors if 'predict' in c and c['predict'][sampleIndex] == 1])
+    energyWhoVoteZero = sum([c['energy'] for c in neighbors if 'predict' in c and c['predict'][sampleIndex] == 0])
+    energyWhoVoteOne = sum([c['energy'] for c in neighbors if 'predict' in c and c['predict'][sampleIndex] == 1])
+    # energyWhoVoteZero = sum([c['energy']*c['prob'][sampleIndex][0] for c in neighbors if 'predict' in c and c['predict'][sampleIndex] == 0])
+    # energyWhoVoteOne = sum([c['energy']*c['prob'][sampleIndex][1] for c in neighbors if 'predict' in c and c['predict'][sampleIndex] == 1])
     energyTotal = sum([c['energy'] for c in neighbors if 'predict' in c])
     return energyWhoVoteZero, energyWhoVoteOne, energyTotal
 
@@ -96,7 +98,8 @@ def collectOrRelocateDeadCells(matrix, pool=[], classifiers={}, cellRealocation=
                 pool.append(matrix[i][j]['name'])
                 if cellRealocation:
                     print("Classifier "+matrix[i][j]['name']+" died. "+pool[0]+" took the place.")
-                    matrix[i][j] = copy.deepcopy(classifiers[pool.pop(0)])
+                    DataGenerate.saveDeadCell(matrix[i][j], classifiers[pool[0]], initEnergy)
+                    matrix[i][j] = classifiers[pool.pop(0)]
                     matrix[i][j]['energy'] = initEnergy
                 else: 
                     # print("cell is dead.")
@@ -196,25 +199,27 @@ def returnScore(samples, generatedList):
     return hitSum/total
         
 def transactionRuleA(currentEnergy, averageMatrix, x):
-    if (currentEnergy > 1000): 
-        sub = currentEnergy - (averageMatrix)
-        if sub > 0:
-            return round(currentEnergy + (sub/100), 2)
-        else:
-            return round(currentEnergy + x, 2)
-    else:
-        return round(currentEnergy + x, 2)
+    return round(currentEnergy + x, 2)
+    # if (currentEnergy > 1000): 
+    #     sub = currentEnergy - (averageMatrix)
+    #     if sub > 0:
+    #         return round(currentEnergy + (sub/100), 2)
+    #     else:
+    #         return round(currentEnergy + x, 2)
+    # else:
+    #     return round(currentEnergy + x, 2)
     # return round(currentEnergy + (averageNeighbors * 0.001),1)
 
 def transactionRuleB(currentEnergy, averageMatrix, x):
-    if (currentEnergy > 1000): 
-        sub = currentEnergy - (averageMatrix)
-        if sub > 0:
-            return round(currentEnergy + (sub/100), 2)
-        else:
-            return round(currentEnergy + x, 2)
-    else:
-        return round(currentEnergy + x, 2)
+    return round(currentEnergy + x, 2)
+    # if (currentEnergy > 1000): 
+    #     sub = currentEnergy - (averageMatrix)
+    #     if sub > 0:
+    #         return round(currentEnergy + (sub/100), 2)
+    #     else:
+    #         return round(currentEnergy + x, 2)
+    # else:
+    #     return round(currentEnergy + x, 2)
     # return round(currentEnergy + (averageNeighbors * 0.005),1)
 
 def transactionRuleC(currentEnergy, averageNeighbors, x):
@@ -264,10 +269,11 @@ def algorithmCCA(matrix, Y_test_cf, nrCells, distance, pool, classif, params, qt
                             else:
                                 matrix[i][j]['energy'] = transactionRuleD(currentEnergy, averageNeighborsEnergy, params['TRD'])
                         a = 'a'
+                    DataGenerate.saveStatus(matrix, classif, x, sample, i, j)
                     collectOrRelocateDeadCells(matrix, pool, classif, learning, averageNeighborsEnergy)
-            Graph.printMatrixInteractiveEnergy(matrix)
+            # Graph.printMatrixInteractiveEnergy(matrix)
         print(returnMatrixOfIndividualItem(matrix, 'energy'))
-        Graph.printMatrixInteractiveEnergy(matrix)
+        # Graph.printMatrixInteractiveEnergy(matrix)
         # print("iteracao "+str(x))
 
 def inferenceAlgorithm(matrix, nrCells, distance, params, rangeSampleCA, qtdIteration=100):

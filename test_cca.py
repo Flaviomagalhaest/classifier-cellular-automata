@@ -312,14 +312,25 @@ class testPlots(unittest.TestCase):
 
    @unittest.skip("Graphic tests")
    def test_testInteractiveMatrix(self):
-      Graph(self.matrix)
-      Graph.printMatrixInteractiveEnergy(self.matrix)
+      Graph()
+      Graph.initMatrix(self.matrix)
       Graph.printMatrixInteractiveEnergy(self.matrix)
       Graph.printMatrixInteractiveEnergy(self.matrix)
       self.matrix[0][0]['energy'] = 700
       self.matrix[0][1]['energy'] = 900
       self.matrix[1][0]['energy'] = 50
       Graph.printMatrixInteractiveEnergy(self.matrix)
+      a='a'
+   
+   def test_classifierEnergyBar(self):
+      data = {}
+      data['QDA'] = {'name': 'QDA', 'predict': [1, 0, 1, 0, 0, 1], 'prob': [], 'score': 0.6275555555555555, 'energy': 100}
+      data['LDA'] = {'name': 'LDA', 'predict': [1, 0, 1, 0, 1], 'prob': [], 'score': 0.8164444444444444, 'energy': 100}
+      data['Naive_Bayes'] = {'name': 'Naive_Bayes', 'predict': [1, 0, 1, 1, 0, 1], 'prob': [], 'score': 0.8186666666666667, 'energy': 100}
+      Graph()
+      Graph.initBar(data)
+      data['QDA']['energy'] = 3000
+      Graph.printBar()
       a='a'
 
 # class testsClassifiers(unittest.TestCase):

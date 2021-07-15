@@ -5,6 +5,7 @@ import random, cca, copy, pso
 from classifiers import Classifiers
 from params import Params
 from graph import Graph
+from dataGenerate import DataGenerate
 
 from sklearn.datasets import make_classification
 from sklearn.model_selection import train_test_split
@@ -54,7 +55,7 @@ for name, clf in zip(names, classifiers):
     c = {}
     c['name'] = name
     c['predict'] = clf.predict(X_test)
-    c['prob'] = clf.predict_proba(X_test)
+    # c['prob'] = clf.predict_proba(X_test)
     # c['confidence'] = clf.decision_function(X_test)
     # c['confAvg'], c['confAvgWhenWrong'], c['confAvgWhenRight'] =  cca.confidenceInClassification(c['predict'], Y_test, c['confidence'])
     c['score'] = clf.score(X_test_ca, Y_test_ca)
@@ -75,8 +76,9 @@ matrixOrigin = copy.deepcopy(matrix)
 # plt.ion()
 # fig, ax = plt.subplots()
 # cca.printMatrixInteractive(matrix, fig, ax)
-Graph(matrix)
-Graph.printMatrixInteractiveEnergy(matrix)
+# Graph(matrix)
+# Graph.initMatrix(matrix)
+DataGenerate(Y_test, classif)
 #########################
 
 params['TRA'] = 2
@@ -86,11 +88,12 @@ params['TRD'] = 0.025
 # params['TRC'] = 4
 # params['TRD'] = 2
 
-
+DataGenerate.saveStatus(matrix, classif)
 cca.algorithmCCA(matrix, Y_test_cf, nrCells, distance, poolClassif, classif, params, t, True)
-Graph.printMatrixInteractiveEnergy(matrix, 'energy')
+# Graph.printMatrixInteractiveEnergy(matrix, 'energy')
 answersList = cca.weightedVote(matrix, rangeSampleCA)
 score = cca.returnScore(Y_test_ca, answersList)
+DataGenerate.file(score, answersList)
 print([{classif[c]['name']: classif[c]['score']} for c in classif])
 print("Maior score encontrado: " + str(max([classif[c]['score'] for c in classif])))
 print("Menor score encontrado: " + str(min([classif[c]['score'] for c in classif])))
@@ -100,39 +103,9 @@ answersList2 = cca.weightedVote2(matrix, rangeSampleCA)
 score2 = cca.returnScore(Y_test_ca, answersList2)
 print(score2)
 
-params['TRA'] = 0
-params['TRD'] = 0.6
+# params['TRA'] = 0
+# params['TRD'] = 0.6
 
-answersListInference = cca.inferenceAlgorithm(matrix, nrCells, distance, params, rangeSampleCA, 100)
-score3 = cca.returnScore(Y_test_ca, answersListInference)
-print(score3)
-
-# cca.restartEnergyMatrix(matrix, energyInit)
-# cca.algorithmCCA(matrix, Y_test_cf, nrCells, distance, poolClassif, classif, params, t, False)
-# cca.printMatrix(matrix)
-# answersList = cca.weightedVote(matrix, rangeSampleCA)
-# score4 = cca.returnScore(Y_test_ca, answersList)
-# print(score4)
-
-# ############ PSO ###############
-# # params ###
-# qtdPop = 10
-# iteration = 50
-# coefAcceleration = 1
-# ############
-# bestResult = {}
-# population = pso.initPopulation(qtdPop, matrix)
-# for i in range(iteration):
-#     for j in range(len(population)):
-#         print("treinando matriz para o individuo "+str(j)+" iteracao: "+str(i))
-#         cca.algorithmCCA(population[j]['matrix'], Y_test_cf, nrCells, distance, poolClassif, classif, population[j]['params'], t, True)
-#     pso.attPbest(population, rangeSampleCA, Y_test_ca)
-#     gbest = pso.attGbest(population)
-#     bestResult = pso.attBestResult(gbest, bestResult)
-#     pso.attPosition(population, coefAcceleration, gbest)
-# print([{classif[c]['name']: classif[c]['score']} for c in classif])
-# print("Maior score encontrado: " + str(max([classif[c]['score'] for c in classif])))
-# print("Menor score encontrado: " + str(min([classif[c]['score'] for c in classif])))
-# print(bestResult['params'])
-# print(bestResult['score'])
-# a = "a"
+# answersListInference = cca.inferenceAlgorithm(matrix, nrCells, distance, params, rangeSampleCA, 100)
+# score3 = cca.returnScore(Y_test_ca, answersListInference)
+# print(score3)
