@@ -81,7 +81,8 @@ class DataGenerate:
 
       with open('file/energy.csv', 'w', newline='') as csvfile:
          spamwriter = csv.writer(csvfile, delimiter=' ', quotechar='|', quoting=csv.QUOTE_MINIMAL)
-         spamwriter.writerows(DataGenerate.enegy)
+         # spamwriter.writerows(DataGenerate.enegy)
+         spamwriter.writerow(DataGenerate.enegy[-1])
 
       with open('file/iteration_deads.csv', 'w', newline='') as csvfile:
          spamwriter = csv.writer(csvfile, delimiter=' ', quotechar='|', quoting=csv.QUOTE_MINIMAL)

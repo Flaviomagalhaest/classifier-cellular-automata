@@ -1,5 +1,5 @@
 import unittest
-import cca
+import cca, random, csv
 from graph import Graph
 
 import numpy as np
@@ -322,6 +322,7 @@ class testPlots(unittest.TestCase):
       Graph.printMatrixInteractiveEnergy(self.matrix)
       a='a'
    
+   @unittest.skip("Graphic tests")
    def test_classifierEnergyBar(self):
       data = {}
       data['QDA'] = {'name': 'QDA', 'predict': [1, 0, 1, 0, 0, 1], 'prob': [], 'score': 0.6275555555555555, 'energy': 100}
@@ -333,43 +334,105 @@ class testPlots(unittest.TestCase):
       Graph.printBar()
       a='a'
 
-# class testsClassifiers(unittest.TestCase):
-#    def test_classifier(self):
-#       X, Y = make_classification(n_samples=1000, n_classes=2, n_features=5, n_redundant=0, random_state=1)
-#       X_train, X_test, Y_train, Y_test = train_test_split(X, Y, test_size=0.5)
-#       clf1 = SGDClassifier(loss="hinge", penalty="l2")
-#       clf2 = SGDClassifier(loss="log")
-#       clf3 = SGDClassifier(loss="modified_huber")
-#       clf4 = SGDClassifier(loss="squared_hinge")
-#       clf5 = SGDClassifier(loss="perceptron")
-#       clf6 = SGDClassifier(loss="squared_loss")
-#       clf7 = SGDClassifier(loss='huber')
-#       clf8 = SGDClassifier(loss='epsilon_insensitive')
-#       # clf10 = SVC(kernel='sigmoid')
-#       clf1.fit(X_train, Y_train)
-#       clf2.fit(X_train, Y_train)
-#       clf3.fit(X_train, Y_train)
-#       clf4.fit(X_train, Y_train)
-#       clf5.fit(X_train, Y_train)
-#       clf6.fit(X_train, Y_train)
-#       clf7.fit(X_train, Y_train)
-#       clf8.fit(X_train, Y_train)
-#       clf9.fit(X_train, Y_train)
-#       # clf10.fit(X_train, Y_train)
-#       print(clf1.score(X_test, Y_test))
-#       print(clf2.score(X_test, Y_test))
-#       print(clf3.score(X_test, Y_test))
-#       print(clf4.score(X_test, Y_test))
-#       print(clf5.score(X_test, Y_test))
-#       print(clf6.score(X_test, Y_test))
-#       print(clf7.score(X_test, Y_test))
-#       print(clf8.score(X_test, Y_test))
-#       print(clf9.score(X_test, Y_test))
-#       # print(clf10.score(X_test, Y_test))
-#       # print(clf1.predict(X_test)[0:10])
-#       # print(clf2.predict(X_test)[0:10])
-#       # print(clf3.predict(X_test)[0:10])
-#       # print(clf4.predict(X_test)[0:10])
+class testsClassifiers(unittest.TestCase):
+   def test_classifier(self):
+      with open('dataset/jm1.csv', newline='') as csvfile:
+         spamreader = csv.reader(csvfile, delimiter=',', quotechar='|')
+         csvCount = 0
+         jm1 = [row for nr, row in enumerate(spamreader)]
+         random.shuffle(jm1)
+         jm1_test = jm1[0:1000]
+         jm1_train = jm1[1000:2000]
+
+      Y_train = [j.pop(-1) for j in jm1_train]
+      Y_train = [1 if x=='true' else 0 for x in Y_train]
+      X_train = []
+      for jt in jm1_train:
+         X_train.append([float(j) for j in jt])
+
+      Y_test = [j.pop(-1) for j in jm1_test]
+      Y_test = [1 if x=='true' else 0 for x in Y_test]
+      X_test = []
+      for jt in jm1_test:
+         X_test.append([float(j) for j in jt])
+
+      from sklearn.calibration import CalibratedClassifierCV
+
+      a01 = CalibratedClassifierCV(cv=3, method='sigmoid')
+      a02 = CalibratedClassifierCV(cv=5, method='sigmoid')
+      a03 = CalibratedClassifierCV(cv=7, method='sigmoid')
+      a04 = CalibratedClassifierCV(cv=9, method='sigmoid')
+      a05 = CalibratedClassifierCV(cv=12, method='sigmoid')
+      a06 = CalibratedClassifierCV(cv=15, method='sigmoid')
+      a11 = CalibratedClassifierCV(cv=18, method='sigmoid')
+      a12 = CalibratedClassifierCV(cv=21, method='sigmoid')
+      a13 = CalibratedClassifierCV(cv=24, method='sigmoid')
+      a14 = CalibratedClassifierCV(cv=27, method='sigmoid')
+      a15 = CalibratedClassifierCV(cv=30, method='sigmoid')
+      a16 = CalibratedClassifierCV(cv=33, method='sigmoid')
+      b01 = CalibratedClassifierCV(cv=3, method='isotonic')
+      b02 = CalibratedClassifierCV(cv=5, method='isotonic')
+      b03 = CalibratedClassifierCV(cv=7, method='isotonic')
+      b04 = CalibratedClassifierCV(cv=9, method='isotonic')
+      b05 = CalibratedClassifierCV(cv=12, method='isotonic')
+      b06 = CalibratedClassifierCV(cv=15, method='isotonic')
+      b11 = CalibratedClassifierCV(cv=18, method='isotonic')
+      b12 = CalibratedClassifierCV(cv=21, method='isotonic')
+      b13 = CalibratedClassifierCV(cv=24, method='isotonic')
+      b14 = CalibratedClassifierCV(cv=27, method='isotonic')
+      b15 = CalibratedClassifierCV(cv=30, method='isotonic')
+      b16 = CalibratedClassifierCV(cv=33, method='isotonic')
+
+      a01.fit(X_train, Y_train)
+      a02.fit(X_train, Y_train)
+      a03.fit(X_train, Y_train)
+      # a04.fit(X_train, Y_train)
+      # a05.fit(X_train, Y_train)
+      # a06.fit(X_train, Y_train)
+      a11.fit(X_train, Y_train)
+      a12.fit(X_train, Y_train)
+      a13.fit(X_train, Y_train)
+      # a14.fit(X_train, Y_train)
+      # a15.fit(X_train, Y_train)
+      # a16.fit(X_train, Y_train)
+      b01.fit(X_train, Y_train)
+      b02.fit(X_train, Y_train)
+      b03.fit(X_train, Y_train)
+      # b04.fit(X_train, Y_train)
+      # b05.fit(X_train, Y_train)
+      # b06.fit(X_train, Y_train)
+      b11.fit(X_train, Y_train)
+      b12.fit(X_train, Y_train)
+      b13.fit(X_train, Y_train)
+      # b14.fit(X_train, Y_train)
+      # b15.fit(X_train, Y_train)
+      # b16.fit(X_train, Y_train)
+
+      print(a01.score(X_test, Y_test))
+      print(a02.score(X_test, Y_test))
+      print(a03.score(X_test, Y_test))
+      # print(a04.score(X_test, Y_test))
+      # print(a05.score(X_test, Y_test))
+      # print(a06.score(X_test, Y_test))
+      print(a11.score(X_test, Y_test))
+      print(a12.score(X_test, Y_test))
+      print(a13.score(X_test, Y_test))
+      # print(a14.score(X_test, Y_test))
+      # print(a15.score(X_test, Y_test))
+      # print(a16.score(X_test, Y_test))
+      print(b01.score(X_test, Y_test))
+      print(b02.score(X_test, Y_test))
+      print(b03.score(X_test, Y_test))
+      # print(b04.score(X_test, Y_test))
+      # print(b05.score(X_test, Y_test))
+      # print(b06.score(X_test, Y_test))
+      print(b11.score(X_test, Y_test))
+      print(b12.score(X_test, Y_test))
+      print(b13.score(X_test, Y_test))
+      # print(b14.score(X_test, Y_test))
+      # print(b15.score(X_test, Y_test))
+      # print(b16.score(X_test, Y_test))
+      a = 'a'
 
 
 if __name__ == "__main__":

@@ -1,6 +1,6 @@
 import pandas as pd
 import matplotlib.pyplot as plt
-import random, cca, copy, pso
+import random, cca, copy, pso, csv
 
 from classifiers import Classifiers
 from params import Params
@@ -34,9 +34,32 @@ totalSamples            = params['totalSamples']
 testSamples              = params['testSamples']
 ###########################
 
-####### TEST Sample ############
-X, Y = make_classification(n_samples=totalSamples, n_classes=2, n_features=100, n_redundant=0, random_state=1)
-X_train, X_test, Y_train, Y_test = train_test_split(X, Y, test_size=testSamples)
+# ####### TEST Sample ############
+# X, Y = make_classification(n_samples=totalSamples, n_classes=2, n_features=100, n_redundant=0, random_state=1)
+# X_train, X_test, Y_train, Y_test = train_test_split(X, Y, test_size=testSamples)
+
+####### SAMPLE #################
+with open('dataset/jm1.csv', newline='') as csvfile:
+    spamreader = csv.reader(csvfile, delimiter=',', quotechar='|')
+    csvCount = 0
+    jm1 = [row for nr, row in enumerate(spamreader)]
+    random.shuffle(jm1)
+    jm1_test = jm1[0:testSamples]
+    jm1_train = jm1[testSamples:totalSamples]
+
+Y_train = [j.pop(-1) for j in jm1_train]
+Y_train = [1 if x=='true' else 0 for x in Y_train]
+X_train = []
+for jt in jm1_train:
+    X_train.append([float(j) for j in jt])
+
+Y_test = [j.pop(-1) for j in jm1_test]
+Y_test = [1 if x=='true' else 0 for x in Y_test]
+X_test = []
+for jt in jm1_test:
+    X_test.append([float(j) for j in jt])
+
+
 divTest = int(testSamples/2)
 rangeSampleCA  = range(divTest, testSamples)
 X_test_cf = list(X_test[0:divTest])     #Sample test to train Celullar automata
@@ -44,12 +67,14 @@ Y_test_cf = list(Y_test[0:divTest])     #Sample test to train Celullar automata
 X_test_ca = list(X_test[divTest:testSamples])   #Sample test to validate Celullar automata
 Y_test_ca = list(Y_test[divTest:testSamples])   #Sample test to validate Celullar automata
 
+
 ####### CLASSIFIERS ############
 ClassifiersClass = Classifiers()
 names, classifiers = ClassifiersClass.getAll(ensembleFlag=True)
 
 classif = {}
 for name, clf in zip(names, classifiers):
+    print(name)
     clf.fit(X_train, Y_train)
     print("Clasificador "+name+" treinado.")
     c = {}
@@ -58,7 +83,8 @@ for name, clf in zip(names, classifiers):
     # c['prob'] = clf.predict_proba(X_test)
     # c['confidence'] = clf.decision_function(X_test)
     # c['confAvg'], c['confAvgWhenWrong'], c['confAvgWhenRight'] =  cca.confidenceInClassification(c['predict'], Y_test, c['confidence'])
-    c['score'] = clf.score(X_test_ca, Y_test_ca)
+    # c['score'] = clf.score(X_test_ca, Y_test_ca)
+    c['score'] = clf.score(X_test, Y_test)
     c['energy'] = energyInit
     classif[name] = c
 
@@ -78,7 +104,7 @@ matrixOrigin = copy.deepcopy(matrix)
 # cca.printMatrixInteractive(matrix, fig, ax)
 # Graph(matrix)
 # Graph.initMatrix(matrix)
-DataGenerate(Y_test, classif)
+DataGenerate(Y_test_ca, classif)
 #########################
 
 params['TRA'] = 2
