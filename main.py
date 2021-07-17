@@ -1,9 +1,11 @@
 import pandas as pd
 import matplotlib.pyplot as plt
-import random, cca, copy
+import random, cca, copy, pso, csv
 
 from classifiers import Classifiers
 from params import Params
+from graph import Graph
+from dataGenerate import DataGenerate
 
 from sklearn.datasets import make_classification
 from sklearn.model_selection import train_test_split
@@ -21,25 +23,50 @@ from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
 
 ####### PARAMS ############
 params = Params.get()
-energyInit      = params['energyInit']
-nrCells         = params['nrCells']
-t               = params['t']
-distance        = params['distance']
-sample          = params['sample']
-liveEnergy      = params['liveEnergy']
-cellRealocation = params['cellRealocation']
-totalSamples    = params['totalSamples']
-sampleSize      = params['sampleSize']
-rangeSampleCA   = params['rangeSampleCA']
+energyInit              = params['energyInit']
+nrCells                 = params['nrCells']
+t                       = params['t']
+distance                = params['distance']
+sample                  = params['sample']
+liveEnergy              = params['liveEnergy']
+cellRealocation         = params['cellRealocation']
+totalSamples            = params['totalSamples']
+testSamples              = params['testSamples']
 ###########################
 
-####### TEST Sample ############
-X, Y = make_classification(n_samples=totalSamples, n_classes=2, n_features=5, n_redundant=0, random_state=1)
-X_train, X_test, Y_train, Y_test = train_test_split(X, Y, test_size=sampleSize)
-X_test_cf = list(X_test[0:400])     #Sample test to train Celullar automata
-Y_test_cf = list(Y_test[0:400])     #Sample test to train Celullar automata
-X_test_ca = list(X_test[400:800])   #Sample test to validate Celullar automata
-Y_test_ca = list(Y_test[400:800])   #Sample test to validate Celullar automata
+# ####### TEST Sample ############
+# X, Y = make_classification(n_samples=totalSamples, n_classes=2, n_features=100, n_redundant=0, random_state=1)
+# X_train, X_test, Y_train, Y_test = train_test_split(X, Y, test_size=testSamples)
+
+####### SAMPLE #################
+with open('dataset/jm1.csv', newline='') as csvfile:
+    spamreader = csv.reader(csvfile, delimiter=',', quotechar='|')
+    csvCount = 0
+    jm1 = [row for nr, row in enumerate(spamreader)]
+    random.shuffle(jm1)
+    jm1_test = jm1[0:testSamples]
+    jm1_train = jm1[testSamples:totalSamples]
+
+Y_train = [j.pop(-1) for j in jm1_train]
+Y_train = [1 if x=='true' else 0 for x in Y_train]
+X_train = []
+for jt in jm1_train:
+    X_train.append([float(j) for j in jt])
+
+Y_test = [j.pop(-1) for j in jm1_test]
+Y_test = [1 if x=='true' else 0 for x in Y_test]
+X_test = []
+for jt in jm1_test:
+    X_test.append([float(j) for j in jt])
+
+
+divTest = int(testSamples/2)
+rangeSampleCA  = range(divTest, testSamples)
+X_test_cf = list(X_test[0:divTest])     #Sample test to train Celullar automata
+Y_test_cf = list(Y_test[0:divTest])     #Sample test to train Celullar automata
+X_test_ca = list(X_test[divTest:testSamples])   #Sample test to validate Celullar automata
+Y_test_ca = list(Y_test[divTest:testSamples])   #Sample test to validate Celullar automata
+
 
 ####### CLASSIFIERS ############
 ClassifiersClass = Classifiers()
@@ -47,13 +74,17 @@ names, classifiers = ClassifiersClass.getAll(ensembleFlag=True)
 
 classif = {}
 for name, clf in zip(names, classifiers):
-    print("Treinando "+name)
+    print(name)
     clf.fit(X_train, Y_train)
     print("Clasificador "+name+" treinado.")
     c = {}
     c['name'] = name
     c['predict'] = clf.predict(X_test)
-    c['score'] = clf.score(X_test_ca, Y_test_ca)
+    # c['prob'] = clf.predict_proba(X_test)
+    # c['confidence'] = clf.decision_function(X_test)
+    # c['confAvg'], c['confAvgWhenWrong'], c['confAvgWhenRight'] =  cca.confidenceInClassification(c['predict'], Y_test, c['confidence'])
+    # c['score'] = clf.score(X_test_ca, Y_test_ca)
+    c['score'] = clf.score(X_test, Y_test)
     c['energy'] = energyInit
     classif[name] = c
 
@@ -62,71 +93,45 @@ poolClassif = list(classif.keys())
 random.shuffle(poolClassif)
 
 #building matrix of first celullar automata
-
-
 matrix = []
 for m in range(nrCells):
     matrix.append(cca.returnMatrixline(classif, poolClassif, nrCells))
 matrixOrigin = copy.deepcopy(matrix)
 
-def algoritmCCA(learning=True):
-    #training iteration
-    for x in range (0, t):
-        for sample in range(len(Y_test_cf)):
-            #get each cells of matrix
-            for i in range(nrCells):
-                for j in range(nrCells):
-                    neighbors = []
-                    #neighbors of current cell
-                    neighbors = cca.returnNeighboringClassifiers(nrCells, nrCells, i, j, distance, matrix)
-                    
-                    #return of classifier of neighbors. True if majority right.
-                    majorityNeighborsClassifier, averageNeighborsEnergy = cca.neighborsMajorityRight(neighbors, sample, Y_test_cf[sample])
-                    
-                    #value of sample classified
-                    if 'predict' in matrix[i][j]:
-                        cellSample = matrix[i][j]['predict'][sample]
-                        currentEnergy = copy.deepcopy(matrix[i][j]['energy'])
-                        if cellSample == Y_test_cf[sample]:
-                            #Classifier is right
-                            if (majorityNeighborsClassifier):
-                                matrix[i][j]['energy'] = cca.transactionRuleA(currentEnergy, averageNeighborsEnergy)
-                            else:
-                                matrix[i][j]['energy'] = cca.transactionRuleB(currentEnergy, averageNeighborsEnergy)
-                        else:
-                            #Classifier is wrong
-                            if (majorityNeighborsClassifier):
-                                matrix[i][j]['energy'] = cca.transactionRuleC(currentEnergy, averageNeighborsEnergy)
-                            else:
-                                matrix[i][j]['energy'] = cca.transactionRuleD(currentEnergy, averageNeighborsEnergy)
-                        a = 'a'
-                    cca.collectOrRelocateDeadCells(matrix, poolClassif, classif, learning, averageNeighborsEnergy)
-                    a = 'a'
-            # cca.lostEnergyToLive(matrix, liveEnergy)
-            # cca.printMatrix(matrix)
-            # cca.collectOrRelocateDeadCells(matrix, poolClassif, classif, cellRealocation, averageNeighborsEnergy)
+###### plot config ######
+# plt.ion()
+# fig, ax = plt.subplots()
+# cca.printMatrixInteractive(matrix, fig, ax)
+# Graph(matrix)
+# Graph.initMatrix(matrix)
+DataGenerate(Y_test_ca, classif)
+#########################
 
-        # cca.printMatrix(matrix)
-        print(str(x) + ": "+str(cca.returnMatrixOfIndividualItem(matrix, 'energy')))
+params['TRA'] = 2
+params['TRB'] = 4
+params['TRC'] = 0.05
+params['TRD'] = 0.025
+# params['TRC'] = 4
+# params['TRD'] = 2
 
-algoritmCCA()
-cca.printMatrix(matrix)
+DataGenerate.saveStatus(matrix, classif)
+cca.algorithmCCA(matrix, Y_test_cf, nrCells, distance, poolClassif, classif, params, t, True)
+# Graph.printMatrixInteractiveEnergy(matrix, 'energy')
 answersList = cca.weightedVote(matrix, rangeSampleCA)
 score = cca.returnScore(Y_test_ca, answersList)
-print([[{l['name']: l['score']} if 'energy' in l else 0 for l in m] for m in matrixOrigin])
-print("Maior score encontrado: " + str(max([max([l['score'] for l in m]) for m in matrixOrigin])))
-print("Menor score encontrado: " + str(min([min([l['score'] for l in m]) for m in matrixOrigin])))
+DataGenerate.file(score, answersList)
+print([{classif[c]['name']: classif[c]['score']} for c in classif])
+print("Maior score encontrado: " + str(max([classif[c]['score'] for c in classif])))
+print("Menor score encontrado: " + str(min([classif[c]['score'] for c in classif])))
 print(score)
 
+answersList2 = cca.weightedVote2(matrix, rangeSampleCA)
+score2 = cca.returnScore(Y_test_ca, answersList2)
+print(score2)
 
-cca.restartEnergyMatrix(matrix, energyInit)
-algoritmCCA(False)
-cca.printMatrix(matrix)
-answersList = cca.weightedVote(matrix, rangeSampleCA)
-score = cca.returnScore(Y_test_ca, answersList)
-print([[{l['name']: l['score']} if 'energy' in l else 0 for l in m] for m in matrixOrigin])
-print("Maior score encontrado: " + str(max([max([l['score'] for l in m]) for m in matrixOrigin])))
-print("Menor score encontrado: " + str(min([min([l['score'] for l in m]) for m in matrixOrigin])))
-print(score)
+# params['TRA'] = 0
+# params['TRD'] = 0.6
 
-a = "a"
+# answersListInference = cca.inferenceAlgorithm(matrix, nrCells, distance, params, rangeSampleCA, 100)
+# score3 = cca.returnScore(Y_test_ca, answersListInference)
+# print(score3)
