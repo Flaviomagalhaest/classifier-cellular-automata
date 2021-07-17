@@ -268,7 +268,6 @@ def algorithmCCA(matrix, Y_test_cf, nrCells, distance, pool, classif, params, qt
                                 matrix[i][j]['energy'] = transactionRuleC(currentEnergy, averageNeighborsEnergy, params['TRC'])
                             else:
                                 matrix[i][j]['energy'] = transactionRuleD(currentEnergy, averageNeighborsEnergy, params['TRD'])
-                        a = 'a'
                     DataGenerate.saveStatus(matrix, classif, x, sample, i, j)
                     collectOrRelocateDeadCells(matrix, pool, classif, learning, averageNeighborsEnergy)
             # Graph.printMatrixInteractiveEnergy(matrix)
