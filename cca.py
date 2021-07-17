@@ -271,7 +271,7 @@ def algorithmCCA(matrix, Y_test_cf, nrCells, distance, pool, classif, params, qt
                     DataGenerate.saveStatus(matrix, classif, x, sample, i, j)
                     collectOrRelocateDeadCells(matrix, pool, classif, learning, averageNeighborsEnergy)
             # Graph.printMatrixInteractiveEnergy(matrix)
-        print(returnMatrixOfIndividualItem(matrix, 'energy'))
+        print('it: '+str(x)+' '+ str(returnMatrixOfIndividualItem(matrix, 'energy')))
         # Graph.printMatrixInteractiveEnergy(matrix)
         # print("iteracao "+str(x))
 
