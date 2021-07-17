@@ -136,7 +136,7 @@ def writeErrorsFile():
          for x in range(matrixSize):
             matrixOfY = []
             for y in range(matrixSize):
-               c = copy.deepcopy(classif[matrixGenerate[x][y]]['predict'][i])
+               c = copy.deepcopy(classif[matrixGenerate[x][y]]['predict'][i+len(predictAnswerOfCA)])  #Remember here that predict in full range and not only CA test range
                c = int(c)
                e = copy.deepcopy(energyList[-1][matrixGenerate[x][y]])
                matrixOfY.append((c,e))
@@ -154,7 +154,12 @@ def writeErrorsFile():
 
    with open('file/report/report-'+datetime.today().strftime('%Y%m%d-%H%M')+'.txt', 'a', newline='') as txtfile:
       txtfile.write('ERROS NA VOTACAO DA MATRIZ'+'\n')
-      for item in dfList:         
+      votMass = len([item['qtdVotingWrong'] for item in dfList if int(item['qtdVotingWrong']) >= 20])
+      votNotMass = len([item['qtdVotingWrong'] for item in dfList if int(item['qtdVotingWrong']) < 20])
+      txtfile.write('Quantidade de votacao em massa: '+str(votMass)+' \n')
+      txtfile.write('Quantidade de votacao dividida: '+str(votNotMass)+' \n')
+      txtfile.write('\n'+'\n')
+      for item in dfList:           
          txtfile.write('Answer correct: '+item['answer']+' (qtd cells vote: ' + item['qtdVotingRigth'] + ')\n')
          txtfile.write('Answer found: '+item['predictCA']+' (qtd cells vote: ' + item['qtdVotingWrong'] + ')\n')
          txtfile.write(item['matrix'])
