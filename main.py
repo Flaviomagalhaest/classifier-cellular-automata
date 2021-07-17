@@ -1,80 +1,137 @@
 import pandas as pd
-import random, cca
+import matplotlib.pyplot as plt
+import random, cca, copy, pso, csv
+
+from classifiers import Classifiers
+from params import Params
+from graph import Graph
+from dataGenerate import DataGenerate
 
 from sklearn.datasets import make_classification
 from sklearn.model_selection import train_test_split
 from sklearn.neural_network import MLPClassifier
 from sklearn.neighbors import KNeighborsClassifier
-from sklearn.svm import SVC
+from sklearn.svm import SVC, NuSVC, LinearSVC
 from sklearn.gaussian_process import GaussianProcessClassifier
-from sklearn.ensemble import GradientBoostingClassifier
 from sklearn.gaussian_process.kernels import RBF
 from sklearn.tree import DecisionTreeClassifier
-from sklearn.ensemble import ExtraTreesClassifier
-from sklearn.ensemble import RandomForestClassifier, AdaBoostClassifier
+from sklearn.ensemble import RandomForestClassifier, AdaBoostClassifier, ExtraTreesClassifier, GradientBoostingClassifier
 from sklearn.naive_bayes import GaussianNB
 from sklearn.discriminant_analysis import QuadraticDiscriminantAnalysis
-from sklearn.linear_model import SGDClassifier
+from sklearn.linear_model import SGDClassifier, RidgeClassifier
+from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
 
-X, Y = make_classification(n_samples=100, n_classes=2, n_features=5, n_redundant=0, random_state=1)
-X_train, X_test, Y_train, Y_test = train_test_split(X, Y, test_size=0.2)
+####### PARAMS ############
+params = Params.get()
+energyInit              = params['energyInit']
+nrCells                 = params['nrCells']
+t                       = params['t']
+distance                = params['distance']
+sample                  = params['sample']
+liveEnergy              = params['liveEnergy']
+cellRealocation         = params['cellRealocation']
+totalSamples            = params['totalSamples']
+testSamples              = params['testSamples']
+###########################
 
-names = ["Nearest_Neighbors_3", "Nearest_Neighbors_4", "Nearest_Neighbors_5", "Nearest_Neighbors_7", "Linear_SVM", "Polynomial_SVM", "RBF_SVM", "Gaussian_Process",
-         "Gradient_Boosting", "Decision_Tree_3", "Decision_Tree_5", "Extra_Trees_10_2", "Extra_Trees_30_2", "Extra_Trees_10_4", "Random_Forest_12_100", "Random_Forest_15_100", "Random_Forest_5_300",
-         "Random_Forest_7_300", "Neural_Net", "AdaBoost_50", "AdaBoost_100", "AdaBoost_150",
-         "Naive_Bayes", "QDA", "SGD"]
+# ####### TEST Sample ############
+# X, Y = make_classification(n_samples=totalSamples, n_classes=2, n_features=100, n_redundant=0, random_state=1)
+# X_train, X_test, Y_train, Y_test = train_test_split(X, Y, test_size=testSamples)
 
-classifiers = [
-    KNeighborsClassifier(3),
-    KNeighborsClassifier(4),
-    KNeighborsClassifier(5),
-    KNeighborsClassifier(7),
-    SVC(kernel="linear", C=0.025),
-    SVC(kernel="poly", degree=3, C=0.025),
-    SVC(kernel="rbf", C=1, gamma=2),
-    GaussianProcessClassifier(1.0 * RBF(1.0)),
-    GradientBoostingClassifier(n_estimators=100, learning_rate=1.0),
-    DecisionTreeClassifier(max_depth=3),
-    DecisionTreeClassifier(max_depth=5),
-    ExtraTreesClassifier(n_estimators=10, min_samples_split=2),
-    ExtraTreesClassifier(n_estimators=30, min_samples_split=2),
-    ExtraTreesClassifier(n_estimators=10, min_samples_split=4),
-    RandomForestClassifier(max_depth=12, n_estimators=100),
-    RandomForestClassifier(max_depth=15, n_estimators=100),
-    RandomForestClassifier(max_depth=5, n_estimators=300),
-    RandomForestClassifier(max_depth=7, n_estimators=300),
-    MLPClassifier(alpha=1, max_iter=1000),
-    AdaBoostClassifier(n_estimators=50),
-    AdaBoostClassifier(n_estimators=100),
-    AdaBoostClassifier(n_estimators=150),
-    GaussianNB(),
-    QuadraticDiscriminantAnalysis(),
-    SGDClassifier(loss="hinge", penalty="l2")]
+####### SAMPLE #################
+with open('dataset/jm1.csv', newline='') as csvfile:
+    spamreader = csv.reader(csvfile, delimiter=',', quotechar='|')
+    csvCount = 0
+    jm1 = [row for nr, row in enumerate(spamreader)]
+    random.shuffle(jm1)
+    jm1_test = jm1[0:testSamples]
+    jm1_train = jm1[testSamples:totalSamples]
+
+Y_train = [j.pop(-1) for j in jm1_train]
+Y_train = [1 if x=='true' else 0 for x in Y_train]
+X_train = []
+for jt in jm1_train:
+    X_train.append([float(j) for j in jt])
+
+Y_test = [j.pop(-1) for j in jm1_test]
+Y_test = [1 if x=='true' else 0 for x in Y_test]
+X_test = []
+for jt in jm1_test:
+    X_test.append([float(j) for j in jt])
+
+
+divTest = int(testSamples/2)
+rangeSampleCA  = range(divTest, testSamples)
+X_test_cf = list(X_test[0:divTest])     #Sample test to train Celullar automata
+Y_test_cf = list(Y_test[0:divTest])     #Sample test to train Celullar automata
+X_test_ca = list(X_test[divTest:testSamples])   #Sample test to validate Celullar automata
+Y_test_ca = list(Y_test[divTest:testSamples])   #Sample test to validate Celullar automata
+
+
+####### CLASSIFIERS ############
+ClassifiersClass = Classifiers()
+names, classifiers = ClassifiersClass.getAll(ensembleFlag=True)
 
 classif = {}
-
 for name, clf in zip(names, classifiers):
-    print("Treinando "+name)
+    print(name)
     clf.fit(X_train, Y_train)
     print("Clasificador "+name+" treinado.")
     c = {}
     c['name'] = name
-    c['score'] = clf.score(X_test, Y_test)
     c['predict'] = clf.predict(X_test)
+    # c['prob'] = clf.predict_proba(X_test)
+    # c['confidence'] = clf.decision_function(X_test)
+    # c['confAvg'], c['confAvgWhenWrong'], c['confAvgWhenRight'] =  cca.confidenceInClassification(c['predict'], Y_test, c['confidence'])
+    # c['score'] = clf.score(X_test_ca, Y_test_ca)
+    c['score'] = clf.score(X_test, Y_test)
+    c['energy'] = energyInit
     classif[name] = c
 
 #shuffling classifiers for the pool
-keys_classif = list(classif.keys())
-random.shuffle(keys_classif)
+poolClassif = list(classif.keys())
+random.shuffle(poolClassif)
 
 #building matrix of first celullar automata
-matrix = [
-    cca.returnMatrixline(classif, keys_classif),
-    cca.returnMatrixline(classif, keys_classif),
-    cca.returnMatrixline(classif, keys_classif),
-    cca.returnMatrixline(classif, keys_classif),
-    cca.returnMatrixline(classif, keys_classif),
-]
+matrix = []
+for m in range(nrCells):
+    matrix.append(cca.returnMatrixline(classif, poolClassif, nrCells))
+matrixOrigin = copy.deepcopy(matrix)
 
+###### plot config ######
+# plt.ion()
+# fig, ax = plt.subplots()
+# cca.printMatrixInteractive(matrix, fig, ax)
+# Graph(matrix)
+# Graph.initMatrix(matrix)
+DataGenerate(Y_test_ca, classif)
+#########################
 
-a = "a"
+params['TRA'] = 2
+params['TRB'] = 4
+params['TRC'] = 0.05
+params['TRD'] = 0.025
+# params['TRC'] = 4
+# params['TRD'] = 2
+
+DataGenerate.saveStatus(matrix, classif)
+cca.algorithmCCA(matrix, Y_test_cf, nrCells, distance, poolClassif, classif, params, t, True)
+# Graph.printMatrixInteractiveEnergy(matrix, 'energy')
+answersList = cca.weightedVote(matrix, rangeSampleCA)
+score = cca.returnScore(Y_test_ca, answersList)
+DataGenerate.file(score, answersList)
+print([{classif[c]['name']: classif[c]['score']} for c in classif])
+print("Maior score encontrado: " + str(max([classif[c]['score'] for c in classif])))
+print("Menor score encontrado: " + str(min([classif[c]['score'] for c in classif])))
+print(score)
+
+answersList2 = cca.weightedVote2(matrix, rangeSampleCA)
+score2 = cca.returnScore(Y_test_ca, answersList2)
+print(score2)
+
+# params['TRA'] = 0
+# params['TRD'] = 0.6
+
+# answersListInference = cca.inferenceAlgorithm(matrix, nrCells, distance, params, rangeSampleCA, 100)
+# score3 = cca.returnScore(Y_test_ca, answersListInference)
+# print(score3)
