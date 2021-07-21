@@ -3,7 +3,7 @@ class Params:
       obj = {}
       obj['energyInit'] = 100                     #Initial energy of cells
       obj['nrCells'] = 5                        #Size of matrix (ex. nrCells = 5 -> matrix 5x5)
-      obj['t'] = 20                            #Number of iteractions
+      obj['t'] = 1                            #Number of iteractions
       obj['distance'] = 1                       #Euclidean distance of matrix 
       obj['sample'] = 0          
       obj['liveEnergy'] = 1                     #Value of energy that cell wil lost per iteration
