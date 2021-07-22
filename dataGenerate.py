@@ -1,5 +1,7 @@
 import copy
 import csv
+import pandas as pd
+from datetime import datetime
 
 class DataGenerate:
    predictReal = []
@@ -14,13 +16,19 @@ class DataGenerate:
    x =      0
    y =      0
 
+   reportList = []
+
    def __init__(self, predictReal, classif):
       DataGenerate.predictReal = copy.deepcopy(predictReal)
+      DataGenerate.classifiers = []
+      DataGenerate.matrix = []
+      DataGenerate.enegy = []
+      DataGenerate.status_deads = []
+      
       listName = copy.deepcopy([[c[1]['name'], c[1]['score']] for c in classif.items()])
       listPredict = copy.deepcopy([list(c[1]['predict']) for c in classif.items()])
       for i in range(len(listName)):
          DataGenerate.classifiers.append(listName[i] + listPredict[i])
-      a = 'a'
    
    def saveStatus(matrix, classif, it=-1, sample=-1, x=-1, y=-1):
       DataGenerate.it = it
@@ -68,8 +76,9 @@ class DataGenerate:
       with open('file/predict.csv', 'w', newline='') as csvfile:
          spamwriter = csv.writer(csvfile, delimiter=' ', quotechar='|', quoting=csv.QUOTE_MINIMAL)
          spamwriter.writerow(DataGenerate.predictReal)
-         predict.append(score)
-         spamwriter.writerow(predict)
+         listPredict = copy.deepcopy(predict)
+         listPredict.append(score)
+         spamwriter.writerow(listPredict)
 
       with open('file/classifiers.csv', 'w', newline='') as csvfile:
          spamwriter = csv.writer(csvfile, delimiter=' ', quotechar='|', quoting=csv.QUOTE_MINIMAL)
@@ -87,3 +96,69 @@ class DataGenerate:
       with open('file/iteration_deads.csv', 'w', newline='') as csvfile:
          spamwriter = csv.writer(csvfile, delimiter=' ', quotechar='|', quoting=csv.QUOTE_MINIMAL)
          spamwriter.writerows(DataGenerate.status_deads)
+
+   def saveResult(scoreLearning, scoreInference, answerlist, matrixSize, matrix, it, distance, dataset):
+      def listVoting():
+         list = []
+         for i in range(len(answerlist)):
+            if answerlist[i] != DataGenerate.predictReal[i]:
+               matrixOfElementWrong = []
+               for x in range(matrixSize):
+                  matrixOfY = []
+                  for y in range(matrixSize):
+                     # c = copy.deepcopy(classif[matrix[x][y]['name']]['predict'][i+len(answerlist)])  #Remember here that predict in full range and not only CA test range
+                     c = copy.deepcopy(matrix[x][y]['predict'][i+len(answerlist)])  #Remember here that predict in full range and not only CA test range
+                     c = int(c)
+                     e = copy.deepcopy(matrix[x][y]['energy'])
+                     matrixOfY.append((c,e))
+                  matrixOfElementWrong.append(matrixOfY)
+               qtdCellsVotingRigth = sum([[l[0] for l in line].count(int(DataGenerate.predictReal[i])) for line in matrixOfElementWrong])
+               qtdCellsVotingWrong = sum([[l[0] for l in line].count(int(answerlist[i])) for line in matrixOfElementWrong])
+               obj = {}
+               obj['qtdCellsVotingRigth'] = qtdCellsVotingRigth
+               obj['qtdCellsVotingWrong'] = qtdCellsVotingWrong
+               list.append(copy.deepcopy(obj))
+         return list
+         
+      
+      
+      cMax = max([c[1] for c in DataGenerate.classifiers])
+      cMin = min([c[1] for c in DataGenerate.classifiers])
+      listQtdDeads = []
+      for i in range(DataGenerate.it + 1):
+         qtdDeads = len([d for d in DataGenerate.status_deads if int(d[0]) == i])
+         listQtdDeads.append(qtdDeads)
+      voting = listVoting()
+      matrixSize80Pct = int((matrixSize * matrixSize) * 0.8)
+      voteMass = len([item['qtdCellsVotingWrong'] for item in voting if int(item['qtdCellsVotingWrong']) >= matrixSize80Pct])
+      voteDiv = len([item['qtdCellsVotingWrong'] for item in voting if int(item['qtdCellsVotingWrong']) < matrixSize80Pct])
+
+      list = []
+      list.append(scoreLearning)
+      list.append(scoreInference)
+      list.append(cMax)
+      list.append(cMin)
+      list.append(cMax - scoreLearning)
+      list.append(cMax - scoreInference)
+      list.append(sum(listQtdDeads))
+      list.append(sum(listQtdDeads) / len(listQtdDeads))
+      list.append(max(listQtdDeads))
+      list.append(min(listQtdDeads))
+      list.append(len(voting))
+      list.append(voteMass)
+      list.append(voteDiv)
+      list.append(matrixSize)
+      list.append(it)
+      list.append(distance)
+      list.append(dataset)
+
+      DataGenerate.reportList.append(copy.deepcopy(list))
+
+   def report():
+      columns = ['matrix_score_learning', 'matrix_score_inference', 'classif_maior_score', 'classif_menor_score', 'matrix_pct_classif_learning',
+       'matrix_pct_classif_inference', 'qtd_mortes_total', 'qtd_mortes_media_por_iteracao', 'qtd_maior_mortes', 'qtd_menor_mortes', 'qtd_erros',
+       'qtd_votacao_em_massa_em_erros', 'qtd_votacao_dividida_em_erros', 'matrix_tamanho', 'iteracao_nr', 'distancia', 'dataset']
+      df = pd.DataFrame(DataGenerate.reportList, columns=columns)
+      writer = pd.ExcelWriter('file/result/result'+datetime.today().strftime('%Y%m%d-%H%M')+'.xlsx')
+      df.to_excel(writer)
+      writer.save()

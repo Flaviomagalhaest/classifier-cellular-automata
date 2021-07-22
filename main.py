@@ -1,6 +1,6 @@
 import pandas as pd
 import matplotlib.pyplot as plt
-import random, cca, copy, pso, csv
+import random, cca, copy, csv, sys
 
 from classifiers import Classifiers
 from params import Params
@@ -32,6 +32,7 @@ liveEnergy              = params['liveEnergy']
 cellRealocation         = params['cellRealocation']
 totalSamples            = params['totalSamples']
 testSamples              = params['testSamples']
+database = 'jm1'
 ###########################
 
 def datasetSkLearn():
@@ -64,8 +65,10 @@ def datasetJM1():
     return X_train, X_test, Y_train, Y_test
 
 def dataset():
-    # X_train, X_test, Y_train, Y_test = datasetSkLearn()
-    X_train, X_test, Y_train, Y_test = datasetJM1()
+    if database == 'jm1':
+        X_train, X_test, Y_train, Y_test = datasetJM1()
+    else:
+        X_train, X_test, Y_train, Y_test = datasetSkLearn()    
 
     divTest = int(testSamples/2)
     rangeSampleCA  = range(divTest, testSamples)
@@ -82,19 +85,24 @@ def buildPool(X_train, Y_train, X_test, Y_test):
 
     classif = {}
     for name, clf in zip(names, classifiers):
-        print(name)
-        clf.fit(X_train, Y_train)
-        print("Clasificador "+name+" treinado.")
-        c = {}
-        c['name'] = name
-        c['predict'] = clf.predict(X_test)
-        # c['prob'] = clf.predict_proba(X_test)
-        # c['confidence'] = clf.decision_function(X_test)
-        # c['confAvg'], c['confAvgWhenWrong'], c['confAvgWhenRight'] =  cca.confidenceInClassification(c['predict'], Y_test, c['confidence'])
-        # c['score'] = clf.score(X_test_ca, Y_test_ca)
-        c['score'] = clf.score(X_test, Y_test)
-        c['energy'] = energyInit
-        classif[name] = c
+        try:
+            print(name)
+            clf.fit(X_train, Y_train)
+            print("Clasificador "+name+" treinado.")
+            c = {}
+            c['name'] = name
+            c['predict'] = clf.predict(X_test)
+            # c['prob'] = clf.predict_proba(X_test)
+            # c['confidence'] = clf.decision_function(X_test)
+            # c['confAvg'], c['confAvgWhenWrong'], c['confAvgWhenRight'] =  cca.confidenceInClassification(c['predict'], Y_test, c['confidence'])
+            # c['score'] = clf.score(X_test_ca, Y_test_ca)
+            c['score'] = clf.score(X_test, Y_test)
+            c['energy'] = energyInit
+            classif[name] = c
+        except:
+            print("Unexpected error:", sys.exc_info()[0])
+        finally:
+            continue
 
     #shuffling classifiers for the pool
     poolClassif = list(classif.keys())
@@ -109,26 +117,29 @@ def buildMatrix(classif, poolClassif):
     return matrix
 
 
+for repeat in range(10):
+    X_train, X_test, Y_train, Y_test, X_test_cf, Y_test_cf, X_test_ca, Y_test_ca, rangeSampleCA = dataset()
+    poolClassif, classif = buildPool(X_train, Y_train, X_test, Y_test)
+    matrix = buildMatrix(classif, poolClassif)
+    DataGenerate(Y_test_ca, classif)
+    params['TRA'] = 2
+    params['TRB'] = 4
+    params['TRC'] = 0.05
+    params['TRD'] = 0.025
 
-X_train, X_test, Y_train, Y_test, X_test_cf, Y_test_cf, X_test_ca, Y_test_ca, rangeSampleCA = dataset()
-poolClassif, classif = buildPool(X_train, Y_train, X_test, Y_test)
-matrix = buildMatrix(classif, poolClassif)
-DataGenerate(Y_test_ca, classif)
-params['TRA'] = 2
-params['TRB'] = 4
-params['TRC'] = 0.05
-params['TRD'] = 0.025
+    DataGenerate.saveStatus(matrix, classif)
+    cca.algorithmCCA(matrix, Y_test_cf, nrCells, distance, poolClassif, classif, params, t, True)
+    # Graph.printMatrixInteractiveEnergy(matrix, 'energy')
+    answersList = cca.weightedVote(matrix, rangeSampleCA)
+    score = cca.returnScore(Y_test_ca, answersList)
+    # DataGenerate.file(score, answersList)
+    print("Maior score encontrado: " + str(max([classif[c]['score'] for c in classif])))
+    print("Menor score encontrado: " + str(min([classif[c]['score'] for c in classif])))
+    print(score)
 
-DataGenerate.saveStatus(matrix, classif)
-cca.algorithmCCA(matrix, Y_test_cf, nrCells, distance, poolClassif, classif, params, t, True)
-# Graph.printMatrixInteractiveEnergy(matrix, 'energy')
-answersList = cca.weightedVote(matrix, rangeSampleCA)
-score = cca.returnScore(Y_test_ca, answersList)
-DataGenerate.file(score, answersList)
-print("Maior score encontrado: " + str(max([classif[c]['score'] for c in classif])))
-print("Menor score encontrado: " + str(min([classif[c]['score'] for c in classif])))
-print(score)
-
-answersListInference = cca.inferenceAlgorithm(matrix, nrCells, distance, params, rangeSampleCA, t)
-score3 = cca.returnScore(Y_test_ca, answersListInference)
-print(score3)
+    answersListInference = cca.inferenceAlgorithm(matrix, nrCells, distance, params, rangeSampleCA, t)
+    score2 = cca.returnScore(Y_test_ca, answersListInference)
+    print(score2)
+    print('Salvando resultados da '+str(repeat)+' repeticao')
+    DataGenerate.saveResult(score, score2, answersList, nrCells, matrix, t, distance, database)
+DataGenerate.report()
