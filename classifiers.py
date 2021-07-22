@@ -291,7 +291,7 @@ class Classifiers:
 
       names, classifiers = self.getCalibrationClassifierCV(names, classifiers)
       names, classifiers = self.getDiscriminantAnalysis(names, classifiers)
-      names, classifiers = self.getGaussian(names, classifiers)
+      # names, classifiers = self.getGaussian(names, classifiers)
       names, classifiers = self.getLinearModel(names, classifiers)
       names, classifiers = self.getNaiveBayers(names, classifiers)
       names, classifiers = self.getNeuralNetwork(names, classifiers)

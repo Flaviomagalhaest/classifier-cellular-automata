@@ -20,6 +20,11 @@ class DataGenerate:
 
    def __init__(self, predictReal, classif):
       DataGenerate.predictReal = copy.deepcopy(predictReal)
+      DataGenerate.classifiers = []
+      DataGenerate.matrix = []
+      DataGenerate.enegy = []
+      DataGenerate.status_deads = []
+      
       listName = copy.deepcopy([[c[1]['name'], c[1]['score']] for c in classif.items()])
       listPredict = copy.deepcopy([list(c[1]['predict']) for c in classif.items()])
       for i in range(len(listName)):
