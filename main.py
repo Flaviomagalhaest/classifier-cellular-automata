@@ -109,28 +109,29 @@ def buildMatrix(classif, poolClassif):
     return matrix
 
 
+for repeat in range(3):
+    X_train, X_test, Y_train, Y_test, X_test_cf, Y_test_cf, X_test_ca, Y_test_ca, rangeSampleCA = dataset()
+    poolClassif, classif = buildPool(X_train, Y_train, X_test, Y_test)
+    matrix = buildMatrix(classif, poolClassif)
+    DataGenerate(Y_test_ca, classif)
+    params['TRA'] = 2
+    params['TRB'] = 4
+    params['TRC'] = 0.05
+    params['TRD'] = 0.025
 
-X_train, X_test, Y_train, Y_test, X_test_cf, Y_test_cf, X_test_ca, Y_test_ca, rangeSampleCA = dataset()
-poolClassif, classif = buildPool(X_train, Y_train, X_test, Y_test)
-matrix = buildMatrix(classif, poolClassif)
-DataGenerate(Y_test_ca, classif)
-params['TRA'] = 2
-params['TRB'] = 4
-params['TRC'] = 0.05
-params['TRD'] = 0.025
+    DataGenerate.saveStatus(matrix, classif)
+    cca.algorithmCCA(matrix, Y_test_cf, nrCells, distance, poolClassif, classif, params, t, True)
+    # Graph.printMatrixInteractiveEnergy(matrix, 'energy')
+    answersList = cca.weightedVote(matrix, rangeSampleCA)
+    score = cca.returnScore(Y_test_ca, answersList)
+    DataGenerate.file(score, answersList)
+    print("Maior score encontrado: " + str(max([classif[c]['score'] for c in classif])))
+    print("Menor score encontrado: " + str(min([classif[c]['score'] for c in classif])))
+    print(score)
 
-DataGenerate.saveStatus(matrix, classif)
-cca.algorithmCCA(matrix, Y_test_cf, nrCells, distance, poolClassif, classif, params, t, True)
-# Graph.printMatrixInteractiveEnergy(matrix, 'energy')
-answersList = cca.weightedVote(matrix, rangeSampleCA)
-score = cca.returnScore(Y_test_ca, answersList)
-DataGenerate.file(score, answersList)
-print("Maior score encontrado: " + str(max([classif[c]['score'] for c in classif])))
-print("Menor score encontrado: " + str(min([classif[c]['score'] for c in classif])))
-print(score)
-
-answersListInference = cca.inferenceAlgorithm(matrix, nrCells, distance, params, rangeSampleCA, t)
-score2 = cca.returnScore(Y_test_ca, answersListInference)
-print(score2)
-
-DataGenerate.saveResult(score, score2, answersList, nrCells, matrix, t, distance, "sklearn")
+    answersListInference = cca.inferenceAlgorithm(matrix, nrCells, distance, params, rangeSampleCA, t)
+    score2 = cca.returnScore(Y_test_ca, answersListInference)
+    print(score2)
+    print('Salvando resultados da '+str(repeat)+' repeticao')
+    DataGenerate.saveResult(score, score2, answersList, nrCells, matrix, t, distance, "sklearn")
+DataGenerate.report()

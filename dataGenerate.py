@@ -1,5 +1,7 @@
 import copy
 import csv
+import pandas as pd
+from datetime import datetime
 
 class DataGenerate:
    predictReal = []
@@ -14,7 +16,7 @@ class DataGenerate:
    x =      0
    y =      0
 
-   report = []
+   reportList = []
 
    def __init__(self, predictReal, classif):
       DataGenerate.predictReal = copy.deepcopy(predictReal)
@@ -145,9 +147,13 @@ class DataGenerate:
       list.append(distance)
       list.append(dataset)
 
-      DataGenerate.report.append(copy.deepcopy(list))
+      DataGenerate.reportList.append(copy.deepcopy(list))
 
    def report():
-      
-      a = 'a'
-      pass
+      columns = ['matrix_score_learning', 'matrix_score_inference', 'classif_maior_score', 'classif_menor_score', 'matrix_pct_classif_learning',
+       'matrix_pct_classif_inference', 'qtd_mortes_total', 'qtd_mortes_media_por_iteracao', 'qtd_maior_mortes', 'qtd_menor_mortes', 'qtd_erros',
+       'qtd_votacao_em_massa_em_erros', 'qtd_votacao_dividida_em_erros', 'matrix_tamanho', 'iteracao_nr', 'distancia', 'dataset']
+      df = pd.DataFrame(DataGenerate.reportList, columns=columns)
+      writer = pd.ExcelWriter('file/result/result'+datetime.today().strftime('%Y%m%d-%H%M')+'.xlsx')
+      df.to_excel(writer)
+      writer.save()
