@@ -64,8 +64,8 @@ def datasetJM1():
     return X_train, X_test, Y_train, Y_test
 
 def dataset():
-    # X_train, X_test, Y_train, Y_test = datasetSkLearn()
-    X_train, X_test, Y_train, Y_test = datasetJM1()
+    X_train, X_test, Y_train, Y_test = datasetSkLearn()
+    # X_train, X_test, Y_train, Y_test = datasetJM1()
 
     divTest = int(testSamples/2)
     rangeSampleCA  = range(divTest, testSamples)
@@ -130,5 +130,7 @@ print("Menor score encontrado: " + str(min([classif[c]['score'] for c in classif
 print(score)
 
 answersListInference = cca.inferenceAlgorithm(matrix, nrCells, distance, params, rangeSampleCA, t)
-score3 = cca.returnScore(Y_test_ca, answersListInference)
-print(score3)
+score2 = cca.returnScore(Y_test_ca, answersListInference)
+print(score2)
+
+DataGenerate.saveResult(score, score2, answersList, nrCells, matrix, t, distance, "sklearn")

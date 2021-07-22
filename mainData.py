@@ -152,10 +152,11 @@ def writeErrorsFile():
    print('Errors file created.')
    
 
+   matrixSize80Pct = int((len(matrixGenerate[0]) ** 2) * 0.8)
    with open('file/report/report-'+datetime.today().strftime('%Y%m%d-%H%M')+'.txt', 'a', newline='') as txtfile:
       txtfile.write('ERROS NA VOTACAO DA MATRIZ'+'\n')
-      votMass = len([item['qtdVotingWrong'] for item in dfList if int(item['qtdVotingWrong']) >= 20])
-      votNotMass = len([item['qtdVotingWrong'] for item in dfList if int(item['qtdVotingWrong']) < 20])
+      votMass = len([item['qtdVotingWrong'] for item in dfList if int(item['qtdVotingWrong']) >= matrixSize80Pct])
+      votNotMass = len([item['qtdVotingWrong'] for item in dfList if int(item['qtdVotingWrong']) < matrixSize80Pct])
       txtfile.write('Quantidade de votacao em massa: '+str(votMass)+' \n')
       txtfile.write('Quantidade de votacao dividida: '+str(votNotMass)+' \n')
       txtfile.write('\n'+'\n')
