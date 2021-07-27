@@ -30,8 +30,9 @@ distance                = params['distance']
 sample                  = params['sample']
 liveEnergy              = params['liveEnergy']
 cellRealocation         = params['cellRealocation']
-totalSamples            = params['totalSamples']
-testSamples              = params['testSamples']
+testSamples             = params['testSamples']
+trainSamples            = params['trainSamples']
+totalSamples            = testSamples + trainSamples
 database = 'jm1'
 ###########################
 
@@ -41,21 +42,36 @@ def datasetSkLearn():
     X_train, X_test, Y_train, Y_test = train_test_split(X, Y, test_size=testSamples)
     return X_train, X_test, Y_train, Y_test
 
-def datasetJM1():
+def datasetJM1(multipleTrain=False):
     ####### SAMPLE #################
     with open('dataset/jm1.csv', newline='') as csvfile:
         spamreader = csv.reader(csvfile, delimiter=',', quotechar='|')
-        csvCount = 0
         jm1 = [row for nr, row in enumerate(spamreader)]
-        random.shuffle(jm1)
-        jm1_test = jm1[0:testSamples]
-        jm1_train = jm1[testSamples:totalSamples]
+        jm1_true = [j for j in jm1 if j[21] == 'true']
+        jm1_false = [j for j in jm1 if j[21] == 'false']
+        random.shuffle(jm1_true)
+        random.shuffle(jm1_false)
+        trainPart = int(trainSamples/2)            #Test sample divided between true answers and false answers
+        jm1_train = jm1_true[:trainPart]
+        jm1_train = jm1_train + jm1_false[:trainPart]
+        jm1_test = jm1_true[trainPart:]
+        jm1_test = jm1_test + jm1_false[trainPart:]
+        random.shuffle(jm1_train)
+        random.shuffle(jm1_test)
+        jm1_test = jm1_test[:testSamples]
+        # jm1_train = jm1[testSamples:totalSamples]
 
     Y_train = [j.pop(-1) for j in jm1_train]
     Y_train = [1 if x=='true' else 0 for x in Y_train]
     X_train = []
     for jt in jm1_train:
         X_train.append([float(j) for j in jt])
+
+    if multipleTrain:
+        div = 4
+        dataDiv = int((totalSamples - testSamples) / div)
+        Y_train = [Y_train[x:x+dataDiv] for x in range(0, len(jm1_train), dataDiv)]
+        X_train = [X_train[x:x+dataDiv] for x in range(0, len(jm1_train), dataDiv)]
 
     Y_test = [j.pop(-1) for j in jm1_test]
     Y_test = [1 if x=='true' else 0 for x in Y_test]
@@ -66,7 +82,7 @@ def datasetJM1():
 
 def dataset():
     if database == 'jm1':
-        X_train, X_test, Y_train, Y_test = datasetJM1()
+        X_train, X_test, Y_train, Y_test = datasetJM1(False)
     else:
         X_train, X_test, Y_train, Y_test = datasetSkLearn()    
 
@@ -78,7 +94,14 @@ def dataset():
     Y_test_ca = list(Y_test[divTest:testSamples])   #Sample test to validate Celullar automata
     return X_train, X_test, Y_train, Y_test, X_test_cf, Y_test_cf, X_test_ca, Y_test_ca, rangeSampleCA
 
-def buildPool(X_train, Y_train, X_test, Y_test):
+def trainClassif(X_train, Y_train, X_test, Y_test):
+    def fit(clf, X_train, Y_train):
+        if isinstance(X_train[0][0], list):
+            nr = random.randint(0, 3)
+            clf.fit(X_train[nr], Y_train[nr])
+        else:
+            clf.fit(X_train, Y_train)
+
     ####### CLASSIFIERS ############
     ClassifiersClass = Classifiers()
     names, classifiers = ClassifiersClass.getAll(ensembleFlag=True)
@@ -86,8 +109,7 @@ def buildPool(X_train, Y_train, X_test, Y_test):
     classif = {}
     for name, clf in zip(names, classifiers):
         try:
-            print(name)
-            clf.fit(X_train, Y_train)
+            fit(clf, X_train, Y_train)
             print("Clasificador "+name+" treinado.")
             c = {}
             c['name'] = name
@@ -116,16 +138,32 @@ def buildMatrix(classif, poolClassif):
         matrix.append(cca.returnMatrixline(classif, poolClassif, nrCells))
     return matrix
 
+def buildPool(classif):
+    massVote = []
+    for i in range(testSamples):
+        element = [classif[c]['predict'][0] for c in classif]
+        massVote.append(max(set(element), key = element.count))
+    for c in classif:
+        count = 0
+        for j in range(testSamples):
+            if classif[c]['predict'][j] != massVote[j]:
+                count += 1
+        classif[c]['qVariety'] = count
+    teste = pd.DataFrame(classif.values())
+    a = 'a'
 
-for repeat in range(10):
+for repeat in range(30):
     X_train, X_test, Y_train, Y_test, X_test_cf, Y_test_cf, X_test_ca, Y_test_ca, rangeSampleCA = dataset()
-    poolClassif, classif = buildPool(X_train, Y_train, X_test, Y_test)
+    poolClassif, classif = trainClassif(X_train, Y_train, X_test, Y_test)
     matrix = buildMatrix(classif, poolClassif)
+    # buildPool(classif)
     DataGenerate(Y_test_ca, classif)
     params['TRA'] = 2
     params['TRB'] = 4
-    params['TRC'] = 0.05
-    params['TRD'] = 0.025
+    # params['TRC'] = 0.05
+    # params['TRD'] = 0.025
+    params['TRC'] = 0.025
+    params['TRD'] = 0.012
 
     DataGenerate.saveStatus(matrix, classif)
     cca.algorithmCCA(matrix, Y_test_cf, nrCells, distance, poolClassif, classif, params, t, True)
