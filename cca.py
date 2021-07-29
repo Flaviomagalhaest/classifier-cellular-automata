@@ -42,6 +42,23 @@ def neighborsMajorityRight(neighbors, sampleIndex, answer):
         return True
     else: return False
 
+#Returns true if the energy of the neighbors who got it right is greater than the energy of the neighbors who got it wrong. false if not. false if tie.
+def neighborsMajorityRight(neighbors, sampleIndex, answer):
+    sumRight = 0
+    sumWrong = 0
+    totalNeighbors = len(neighbors)    
+    for i in range(len(neighbors)):
+        if ('predict' in neighbors[i]):          
+            sampleCell = neighbors[i]['predict'][sampleIndex]
+            if sampleCell == answer:
+                sumRight += neighbors[i]['energy']
+            else:
+                sumWrong += neighbors[i]['energy']
+        else: totalNeighbors -= 1
+    if sumRight > sumWrong:
+        return True
+    else: return False
+
 def neighborsMajorityEnergy(neighbors, sampleIndex):
     energyWhoVoteZero = sum([c['energy'] for c in neighbors if 'predict' in c and c['predict'][sampleIndex] == 0])
     energyWhoVoteOne = sum([c['energy'] for c in neighbors if 'predict' in c and c['predict'][sampleIndex] == 1])
