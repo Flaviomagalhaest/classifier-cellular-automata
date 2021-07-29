@@ -54,11 +54,15 @@ def datasetJM1(multipleTrain=False):
         trainPart = int(trainSamples/2)            #Test sample divided between true answers and false answers
         jm1_train = jm1_true[:trainPart]
         jm1_train = jm1_train + jm1_false[:trainPart]
-        jm1_test = jm1_true[trainPart:]
-        jm1_test = jm1_test + jm1_false[trainPart:]
+        jm1_test_cf = jm1_true[trainPart:int(testSamples/2)]
+        jm1_test_cf = jm1_test_cf + jm1_false[trainPart:int(testSamples/2)]
+        jm1_test_ca = jm1_true[int(testSamples/2):]
+        jm1_test_ca = jm1_test_ca + jm1_false[int(testSamples/2):]
         random.shuffle(jm1_train)
-        random.shuffle(jm1_test)
-        jm1_test = jm1_test[:testSamples]
+        random.shuffle(jm1_test_ca)
+        random.shuffle(jm1_test_cf)
+        jm1_test_ca = jm1_test_ca[:int(testSamples/2)]
+        # jm1_test = jm1_test[:testSamples]
         # jm1_train = jm1[testSamples:totalSamples]
 
     Y_train = [j.pop(-1) for j in jm1_train]
@@ -73,26 +77,36 @@ def datasetJM1(multipleTrain=False):
         Y_train = [Y_train[x:x+dataDiv] for x in range(0, len(jm1_train), dataDiv)]
         X_train = [X_train[x:x+dataDiv] for x in range(0, len(jm1_train), dataDiv)]
 
-    Y_test = [j.pop(-1) for j in jm1_test]
-    Y_test = [1 if x=='true' else 0 for x in Y_test]
-    X_test = []
-    for jt in jm1_test:
-        X_test.append([float(j) for j in jt])
-    return X_train, X_test, Y_train, Y_test
+    Y_test_cf = [j.pop(-1) for j in jm1_test_cf]
+    Y_test_cf = [1 if x=='true' else 0 for x in Y_test_cf]
+    X_test_cf = []
+    for jt in jm1_test_cf:
+        X_test_cf.append([float(j) for j in jt])
+
+    Y_test_ca = [j.pop(-1) for j in jm1_test_ca]
+    Y_test_ca = [1 if x=='true' else 0 for x in Y_test_ca]
+    X_test_ca = []
+    for jt in jm1_test_ca:
+        X_test_ca.append([float(j) for j in jt])
+
+    X_test = list(X_test_cf + X_test_ca)
+    Y_test = list(Y_test_cf + Y_test_ca)
+    divTest = int(testSamples/2)
+    rangeSampleCA  = range(divTest, testSamples)
+    return X_train, X_test, Y_train, Y_test, X_test_cf, Y_test_cf, X_test_ca, Y_test_ca, rangeSampleCA
 
 def dataset():
     if database == 'jm1':
-        X_train, X_test, Y_train, Y_test = datasetJM1(False)
+        return datasetJM1(False)
     else:
         X_train, X_test, Y_train, Y_test = datasetSkLearn()    
-
-    divTest = int(testSamples/2)
-    rangeSampleCA  = range(divTest, testSamples)
-    X_test_cf = list(X_test[0:divTest])     #Sample test to train Celullar automata
-    Y_test_cf = list(Y_test[0:divTest])     #Sample test to train Celullar automata
-    X_test_ca = list(X_test[divTest:testSamples])   #Sample test to validate Celullar automata
-    Y_test_ca = list(Y_test[divTest:testSamples])   #Sample test to validate Celullar automata
-    return X_train, X_test, Y_train, Y_test, X_test_cf, Y_test_cf, X_test_ca, Y_test_ca, rangeSampleCA
+        divTest = int(testSamples/2)
+        rangeSampleCA  = range(divTest, testSamples)
+        X_test_cf = list(X_test[0:divTest])     #Sample test to train Celullar automata
+        Y_test_cf = list(Y_test[0:divTest])     #Sample test to train Celullar automata
+        X_test_ca = list(X_test[divTest:testSamples])   #Sample test to validate Celullar automata
+        Y_test_ca = list(Y_test[divTest:testSamples])   #Sample test to validate Celullar automata
+        return X_train, X_test, Y_train, Y_test, X_test_cf, Y_test_cf, X_test_ca, Y_test_ca, rangeSampleCA
 
 def trainClassif(X_train, Y_train, X_test, Y_test):
     def fit(clf, X_train, Y_train):
@@ -118,7 +132,7 @@ def trainClassif(X_train, Y_train, X_test, Y_test):
             # c['confidence'] = clf.decision_function(X_test)
             # c['confAvg'], c['confAvgWhenWrong'], c['confAvgWhenRight'] =  cca.confidenceInClassification(c['predict'], Y_test, c['confidence'])
             # c['score'] = clf.score(X_test_ca, Y_test_ca)
-            c['score'] = clf.score(X_test, Y_test)
+            c['score'] = clf.score(X_test_ca, Y_test_ca)
             c['energy'] = energyInit
             classif[name] = c
         except:
@@ -152,7 +166,7 @@ def buildPool(classif):
     teste = pd.DataFrame(classif.values())
     a = 'a'
 
-for repeat in range(30):
+for repeat in range(1):
     X_train, X_test, Y_train, Y_test, X_test_cf, Y_test_cf, X_test_ca, Y_test_ca, rangeSampleCA = dataset()
     poolClassif, classif = trainClassif(X_train, Y_train, X_test, Y_test)
     matrix = buildMatrix(classif, poolClassif)
@@ -162,15 +176,15 @@ for repeat in range(30):
     params['TRB'] = 4
     # params['TRC'] = 0.05
     # params['TRD'] = 0.025
-    params['TRC'] = 0.025
-    params['TRD'] = 0.012
+    params['TRC'] = 5
+    params['TRD'] = 2.5
 
     DataGenerate.saveStatus(matrix, classif)
     cca.algorithmCCA(matrix, Y_test_cf, nrCells, distance, poolClassif, classif, params, t, True)
     # Graph.printMatrixInteractiveEnergy(matrix, 'energy')
     answersList = cca.weightedVote(matrix, rangeSampleCA)
     score = cca.returnScore(Y_test_ca, answersList)
-    # DataGenerate.file(score, answersList)
+    DataGenerate.file(score, answersList)
     print("Maior score encontrado: " + str(max([classif[c]['score'] for c in classif])))
     print("Menor score encontrado: " + str(min([classif[c]['score'] for c in classif])))
     print(score)

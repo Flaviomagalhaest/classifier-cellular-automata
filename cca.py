@@ -223,12 +223,12 @@ def transactionRuleB(currentEnergy, averageMatrix, x):
     # return round(currentEnergy + (averageNeighbors * 0.005),1)
 
 def transactionRuleC(currentEnergy, averageNeighbors, x):
-    # return round(currentEnergy - x, 2)
-    return round(currentEnergy - (averageNeighbors * x),2)
+    return round(currentEnergy - x, 2)
+    # return round(currentEnergy - (averageNeighbors * x),2)
 
 def transactionRuleD(currentEnergy, averageNeighbors, x):
-    # return round(currentEnergy - x, 2)
-    return round(currentEnergy - (averageNeighbors * x),2)
+    return round(currentEnergy - x, 2)
+    # return round(currentEnergy - (averageNeighbors * x),2)
 
 def restartEnergyMatrix(matrix, energy=100):
     matrixLength = len(matrix[0])

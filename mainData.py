@@ -22,6 +22,7 @@ classif = {}
 ###### DataFrames #######
 dfClassifiers = {}
 dfEnergy = {}
+dfList = []
 
 ###### PARAMS #######
 matrixSize = 7
@@ -48,6 +49,8 @@ def loadClassifiersCSV():
          c['name'] = row[0]
          c['score'] = row[1]
          c['predict'] = row[2:len(row)]
+         c['voteRigth'] = 0
+         c['voteWrong'] = 0
          classif[c['name']] = c
       print('Classifier CSV loaded.')
 
@@ -118,7 +121,7 @@ def drawBarChartRace():
    barChartRace = BarChartRace(matrixSize, len(predictAnswerOfCA), 10, energyList)
    barChartRace.draw()
 
-def writeErrorsFile():
+def createDfListt():
    #Last matrix generate
    matrixGenerate = matrixList[-1]['matrix']
 
@@ -126,7 +129,6 @@ def writeErrorsFile():
    # predictRealTest = predictRealOfProblem[len(predictAnswerOfCA):]
    countErrors = 0
    listErrors = []
-   dfList = []
    #loop to get every wrong of list predict generated with right answer
    for i in range(len(predictAnswerOfCA)):
       if predictAnswerOfCA[i] != predictRealOfProblem[i]:
@@ -135,11 +137,15 @@ def writeErrorsFile():
          matrixOfElementWrong = []
          for x in range(matrixSize):
             matrixOfY = []
-            for y in range(matrixSize):
+            for y in range(matrixSize):             
                c = copy.deepcopy(classif[matrixGenerate[x][y]]['predict'][i+len(predictAnswerOfCA)])  #Remember here that predict in full range and not only CA test range
                c = int(c)
                e = copy.deepcopy(energyList[-1][matrixGenerate[x][y]])
                matrixOfY.append((c,e))
+               if c == int(predictRealOfProblem[i]):
+                  classif[matrixGenerate[x][y]]['voteRigth'] += 1
+               else:
+                  classif[matrixGenerate[x][y]]['voteWrong'] += 1
             matrixOfElementWrong.append(matrixOfY)
          dataFrame = pd.DataFrame(matrixOfElementWrong)
          qtdCellsVotingRigth = sum([[l[0] for l in line].count(int(predictRealOfProblem[i])) for line in matrixOfElementWrong])
@@ -149,8 +155,10 @@ def writeErrorsFile():
                          'matrix': dataFrame.to_string(header=False, index=False),
                          'qtdVotingRigth': str(qtdCellsVotingRigth),
                          'qtdVotingWrong': str(qtdCellsVotingWrong)})
-   print('Errors file created.')
-   
+
+def writeErrorsFile():
+   #Last matrix generate
+   matrixGenerate = matrixList[-1]['matrix']
 
    matrixSize80Pct = int((len(matrixGenerate[0]) ** 2) * 0.8)
    with open('file/report/report-'+datetime.today().strftime('%Y%m%d-%H%M')+'.txt', 'a', newline='') as txtfile:
@@ -165,6 +173,7 @@ def writeErrorsFile():
          txtfile.write('Answer found: '+item['predictCA']+' (qtd cells vote: ' + item['qtdVotingWrong'] + ')\n')
          txtfile.write(item['matrix'])
          txtfile.write('\n'+'\n')
+   print('Errors file created.')
 
 def writeReportFile():
    countClassifierDeads = Counter([d['classifier_dead'] for d in deadsList])
@@ -176,7 +185,7 @@ def writeReportFile():
 
 
    index = list(classif.keys())
-   columns = ['score', 'deads', 'energy']
+   columns = ['score', 'deads', 'energy', 'voteRigth', 'voteWrong']
    dfClassifiers = pd.DataFrame(classif.values(), columns=columns, index=index)
    
    dfSorted = dfClassifiers.sort_values(by=['energy'], ascending=False)
@@ -219,6 +228,8 @@ loadClassifiersCSV()
 loadMatrixCSV()
 loadEnergyCSV()
 loadIterationDeadsCSV()
+
+createDfListt()
 
 writeReportFile()
 writeErrorsFile()
