@@ -25,8 +25,8 @@ class DataGenerate:
       DataGenerate.enegy = []
       DataGenerate.status_deads = []
       
-      listName = copy.deepcopy([[c[1]['name'], c[1]['score']] for c in classif.items()])
-      listPredict = copy.deepcopy([list(c[1]['predict']) for c in classif.items()])
+      listName = copy.deepcopy([[c[1]['name'], c[1]['score_test']] for c in classif.items()])
+      listPredict = copy.deepcopy([list(c[1]['predict_test']) for c in classif.items()])
       for i in range(len(listName)):
          DataGenerate.classifiers.append(listName[i] + listPredict[i])
    
@@ -107,7 +107,7 @@ class DataGenerate:
                   matrixOfY = []
                   for y in range(matrixSize):
                      # c = copy.deepcopy(classif[matrix[x][y]['name']]['predict'][i+len(answerlist)])  #Remember here that predict in full range and not only CA test range
-                     c = copy.deepcopy(matrix[x][y]['predict'][i+len(answerlist)])  #Remember here that predict in full range and not only CA test range
+                     c = copy.deepcopy(matrix[x][y]['predict_test'][i])  #Remember here that predict in full range and not only CA test range
                      c = int(c)
                      e = copy.deepcopy(matrix[x][y]['energy'])
                      matrixOfY.append((c,e))

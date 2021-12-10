@@ -3,7 +3,7 @@ from sklearn.discriminant_analysis import QuadraticDiscriminantAnalysis, LinearD
 from sklearn.ensemble import RandomForestClassifier, AdaBoostClassifier, ExtraTreesClassifier, GradientBoostingClassifier
 from sklearn.gaussian_process import GaussianProcessClassifier
 from sklearn.gaussian_process.kernels import RBF
-from sklearn.linear_model import SGDClassifier, RidgeClassifier, PassiveAggressiveClassifier
+from sklearn.linear_model import LogisticRegression, SGDClassifier, RidgeClassifier, PassiveAggressiveClassifier
 from sklearn.naive_bayes import GaussianNB
 from sklearn.neural_network import MLPClassifier
 from sklearn.neighbors import KNeighborsClassifier
@@ -149,6 +149,28 @@ class Classifiers:
       return names, classifiers
 
    def getLinearModel(self, names=[], classifiers=[]):
+      names.append("SGD_hinge")
+      names.append("SGD_log")
+      names.append("SGD_modified_huber")
+      names.append("SGD_squared_hinge")
+      names.append("SGD_perceptron")
+      names.append("SGD_huber")
+      names.append("SGD_epsilon_insensitive")
+      names.append("SGD_squared_loss")
+      names.append("Ridget")
+
+      classifiers.append(SGDClassifier(loss="hinge", penalty="l2"))
+      classifiers.append(SGDClassifier(loss="log"))
+      classifiers.append(SGDClassifier(loss="modified_huber"))
+      classifiers.append(SGDClassifier(loss="squared_hinge"))
+      classifiers.append(SGDClassifier(loss="perceptron"))
+      classifiers.append(SGDClassifier(loss='huber'))
+      classifiers.append(SGDClassifier(loss='epsilon_insensitive'))
+      classifiers.append(SGDClassifier(loss="squared_loss"))
+      classifiers.append(RidgeClassifier())
+      return names, classifiers
+
+   def getPassiveAgressive(self, names=[], classifiers=[]):
       names.append("SGD_PAC_00")
       names.append("SGD_PAC_01")
       names.append("SGD_PAC_02")
@@ -179,15 +201,7 @@ class Classifiers:
       names.append("SGD_PAC_27")
       names.append("SGD_PAC_28")
       names.append("SGD_PAC_29")
-      names.append("SGD_hinge")
-      names.append("SGD_log")
-      names.append("SGD_modified_huber")
-      names.append("SGD_squared_hinge")
-      names.append("SGD_perceptron")
-      names.append("SGD_huber")
-      names.append("SGD_epsilon_insensitive")
-      names.append("SGD_squared_loss")
-      names.append("Ridget")
+
       classifiers.append(PassiveAggressiveClassifier())
       classifiers.append(PassiveAggressiveClassifier())
       classifiers.append(PassiveAggressiveClassifier())
@@ -218,15 +232,45 @@ class Classifiers:
       classifiers.append(PassiveAggressiveClassifier())
       classifiers.append(PassiveAggressiveClassifier())
       classifiers.append(PassiveAggressiveClassifier())
-      classifiers.append(SGDClassifier(loss="hinge", penalty="l2"))
-      classifiers.append(SGDClassifier(loss="log"))
-      classifiers.append(SGDClassifier(loss="modified_huber"))
-      classifiers.append(SGDClassifier(loss="squared_hinge"))
-      classifiers.append(SGDClassifier(loss="perceptron"))
-      classifiers.append(SGDClassifier(loss='huber'))
-      classifiers.append(SGDClassifier(loss='epsilon_insensitive'))
-      classifiers.append(SGDClassifier(loss="squared_loss"))
-      classifiers.append(RidgeClassifier())
+
+      return names, classifiers
+
+   def getLogisticRegression(self, names=[], classifiers=[]):
+      names.append("LogReg_lbfgs_0")
+      names.append("LogReg_lbfgs_0.5")
+      names.append("LogReg_lbfgs_0.1")
+      names.append("LogReg_lbfgs_0.05")
+      names.append("LogReg_newton-cg_0")
+      names.append("LogReg_newton-cg_0.5")
+      names.append("LogReg_newton-cg_0.1")
+      names.append("LogReg_newton-cg_0.05")
+      names.append("LogReg_newton-cg_0.05-none")
+      names.append("LogReg_liblinear_l2_0.5")
+      names.append("LogReg_liblinear_l2_0.1")
+      names.append("LogReg_liblinear_l2_0.05")
+      names.append("LogReg_liblinear_l2_0.05-none")
+      names.append("LogReg_liblinear_l1_0.5")
+      names.append("LogReg_liblinear_l1_0.1")
+      names.append("LogReg_liblinear_l1_0.05")
+      names.append("LogReg_liblinear_l1_0.05-none")
+
+      classifiers.append(LogisticRegression(random_state=0))
+      classifiers.append(LogisticRegression(C=0.5))
+      classifiers.append(LogisticRegression(C=0.1))
+      classifiers.append(LogisticRegression(C=0.05))
+      classifiers.append(LogisticRegression(solver='newton-cg', random_state=0))
+      classifiers.append(LogisticRegression(solver='newton-cg', C=0.5))
+      classifiers.append(LogisticRegression(solver='newton-cg', C=0.1))
+      classifiers.append(LogisticRegression(solver='newton-cg', C=0.05))
+      classifiers.append(LogisticRegression(penalty='none', solver='newton-cg', random_state=0))
+      classifiers.append(LogisticRegression(penalty='l2', solver='liblinear', random_state=0))
+      classifiers.append(LogisticRegression(penalty='l2', solver='liblinear', C=0.5))
+      classifiers.append(LogisticRegression(penalty='l2', solver='liblinear', C=0.1))
+      classifiers.append(LogisticRegression(penalty='l2', solver='liblinear', C=0.05))
+      classifiers.append(LogisticRegression(penalty='l1', solver='liblinear', random_state=0))
+      classifiers.append(LogisticRegression(penalty='l1', solver='liblinear', C=0.5))
+      classifiers.append(LogisticRegression(penalty='l1', solver='liblinear', C=0.1))
+      classifiers.append(LogisticRegression(penalty='l1', solver='liblinear', C=0.05))
       return names, classifiers
 
    def getNaiveBayers(self, names=[], classifiers=[]):
@@ -285,19 +329,24 @@ class Classifiers:
       classifiers.append(DecisionTreeClassifier(max_depth=5))
       return names, classifiers
 
-   def getAll(self, ensembleFlag=False):
+   def getAll(self, ensembleFlag=False, predictProbaFlag=False):
       names = []
       classifiers = []
 
-      names, classifiers = self.getCalibrationClassifierCV(names, classifiers)
-      names, classifiers = self.getDiscriminantAnalysis(names, classifiers)
-      # names, classifiers = self.getGaussian(names, classifiers)
-      names, classifiers = self.getLinearModel(names, classifiers)
-      names, classifiers = self.getNaiveBayers(names, classifiers)
-      names, classifiers = self.getNeuralNetwork(names, classifiers)
-      names, classifiers = self.getNeighbors(names, classifiers)
-      names, classifiers = self.getSVM(names, classifiers)
-      names, classifiers = self.getTree(names, classifiers)
+      if (predictProbaFlag==True):
+         names, classifiers = self.getLogisticRegression(names, classifiers)
+      else:
+         names, classifiers = self.getLogisticRegression(names, classifiers)
+         names, classifiers = self.getPassiveAgressive(names, classifiers)
+         # names, classifiers = self.getCalibrationClassifierCV(names, classifiers)
+         names, classifiers = self.getDiscriminantAnalysis(names, classifiers)
+         # names, classifiers = self.getGaussian(names, classifiers)
+         names, classifiers = self.getLinearModel(names, classifiers)
+         names, classifiers = self.getNaiveBayers(names, classifiers)
+         names, classifiers = self.getNeuralNetwork(names, classifiers)
+         names, classifiers = self.getNeighbors(names, classifiers)
+         names, classifiers = self.getSVM(names, classifiers)
+         names, classifiers = self.getTree(names, classifiers)
 
       if ensembleFlag: names, classifiers = self.getEnsemble(names, classifiers)
       return names, classifiers

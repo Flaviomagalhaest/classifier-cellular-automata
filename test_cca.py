@@ -1,14 +1,15 @@
 import unittest
 import cca, random, csv
-from graph import Graph
-
 import numpy as np
+import copy
+
 from sklearn.linear_model import SGDClassifier
 from sklearn.svm import SVC
 from sklearn.datasets import make_classification
 from sklearn.model_selection import train_test_split
 from sklearn.covariance import OAS
-
+from classifiers import Classifiers
+from graph import Graph
 
 #ARRUMAR CLASSES DOS TESTES UNITÁRIOS
 class returnNeighboringClassifiersTest(unittest.TestCase):
@@ -335,14 +336,171 @@ class testPlots(unittest.TestCase):
       a='a'
 
 class testsClassifiers(unittest.TestCase):
+   @unittest.skip("Classifier")
+   def buildMatrix(listClassifiers):
+      matrix = []
+      for c1 in listClassifiers:
+         line = []
+         for c2 in listClassifiers:
+            count = 0
+            for i in range(len(c2)):
+               if c1[i] != c2 [i]:
+                  count += 1
+            line.append(count)
+         matrix.append(copy.deepcopy(line))
+      return matrix
+   
+   @unittest.skip("Classifier")
    def test_classifier(self):
+      trainSamples = 100
       with open('dataset/jm1.csv', newline='') as csvfile:
          spamreader = csv.reader(csvfile, delimiter=',', quotechar='|')
-         csvCount = 0
          jm1 = [row for nr, row in enumerate(spamreader)]
-         random.shuffle(jm1)
-         jm1_test = jm1[0:1000]
-         jm1_train = jm1[1000:2000]
+         jm1_true = [j for j in jm1 if j[21] == 'true']
+         jm1_false = [j for j in jm1 if j[21] == 'false']
+         random.shuffle(jm1_true)
+         random.shuffle(jm1_false)
+         trainPart = int(trainSamples/2)            #Test sample divided between true answers and false answers
+         jm1_train = jm1_true[:trainPart]
+         jm1_train = jm1_train + jm1_false[:trainPart]
+         jm1_test = jm1_true[trainPart:trainSamples]
+         jm1_test = jm1_test + jm1_false[trainPart:trainSamples]
+         random.shuffle(jm1_train)
+         random.shuffle(jm1_test)
+
+      Y_train = [j.pop(-1) for j in jm1_train]
+      Y_train = [1 if x=='true' else 0 for x in Y_train]
+      X_train = []
+      for jt in jm1_train:
+         X_train.append([float(j) for j in jt])
+
+      Y_test = [j.pop(-1) for j in jm1_test]
+      Y_test = [1 if x=='true' else 0 for x in Y_test]
+      X_test = []
+      for jt in jm1_test:
+         X_test.append([float(j) for j in jt])
+
+      from sklearn.linear_model import PassiveAggressiveClassifier, LogisticRegression
+      import pandas as pd
+      import copy
+
+      a000 = LogisticRegression()
+      # a001 = PassiveAggressiveClassifier()
+      # a002 = PassiveAggressiveClassifier()
+      # a003 = PassiveAggressiveClassifier()
+      # a004 = PassiveAggressiveClassifier()
+      # a005 = PassiveAggressiveClassifier()
+      # a006 = PassiveAggressiveClassifier()
+      # a007 = PassiveAggressiveClassifier()
+      # a008 = PassiveAggressiveClassifier()
+      # a009 = PassiveAggressiveClassifier()
+      # a010 = PassiveAggressiveClassifier()
+      # a011 = PassiveAggressiveClassifier()
+      # a012 = PassiveAggressiveClassifier()
+      # a013 = PassiveAggressiveClassifier()
+      # a014 = PassiveAggressiveClassifier()
+      # a015 = PassiveAggressiveClassifier()
+      # a016 = PassiveAggressiveClassifier()
+      # a017 = PassiveAggressiveClassifier()
+      # a018 = PassiveAggressiveClassifier()
+      # a019 = PassiveAggressiveClassifier()
+      # a020 = PassiveAggressiveClassifier()
+      # a021 = PassiveAggressiveClassifier()
+      # a022 = PassiveAggressiveClassifier()
+      # a023 = PassiveAggressiveClassifier()
+      # a024 = PassiveAggressiveClassifier()
+      # a025 = PassiveAggressiveClassifier()
+      # a026 = PassiveAggressiveClassifier()
+      # a027 = PassiveAggressiveClassifier()
+      # a028 = PassiveAggressiveClassifier()
+      # a029 = PassiveAggressiveClassifier()
+
+      a000.fit(X_train, Y_train)
+      # a001.fit(X_train, Y_train)
+      # a002.fit(X_train, Y_train)
+      # a003.fit(X_train, Y_train)
+      # a004.fit(X_train, Y_train)
+      # a005.fit(X_train, Y_train)
+      # a006.fit(X_train, Y_train)
+      # a007.fit(X_train, Y_train)
+      # a008.fit(X_train, Y_train)
+      # a009.fit(X_train, Y_train)
+      # a010.fit(X_train, Y_train)
+      # a011.fit(X_train, Y_train)
+      # a012.fit(X_train, Y_train)
+      # a013.fit(X_train, Y_train)
+      # a014.fit(X_train, Y_train)
+      # a015.fit(X_train, Y_train)
+      # a016.fit(X_train, Y_train)
+      # a017.fit(X_train, Y_train)
+      # a018.fit(X_train, Y_train)
+      # a019.fit(X_train, Y_train)
+      # a020.fit(X_train, Y_train)
+      # a021.fit(X_train, Y_train)
+      # a022.fit(X_train, Y_train)
+      # a023.fit(X_train, Y_train)
+      # a024.fit(X_train, Y_train)
+      # a025.fit(X_train, Y_train)
+      # a026.fit(X_train, Y_train)
+      # a027.fit(X_train, Y_train)
+      # a028.fit(X_train, Y_train)
+      # a029.fit(X_train, Y_train)  
+      
+      list = []
+      list.append(a000.predict(X_test))
+      # list.append(a001.predict(X_test))
+      # list.append(a002.predict(X_test))
+      # list.append(a003.predict(X_test))
+      # list.append(a004.predict(X_test))
+      # list.append(a005.predict(X_test))
+      # list.append(a006.predict(X_test))
+      # list.append(a007.predict(X_test))
+      # list.append(a008.predict(X_test))
+      # list.append(a009.predict(X_test))
+      # list.append(a010.predict(X_test))
+      # list.append(a011.predict(X_test))
+      # list.append(a012.predict(X_test))
+      # list.append(a013.predict(X_test))
+      # list.append(a014.predict(X_test))
+      # list.append(a015.predict(X_test))
+      # list.append(a016.predict(X_test))
+      # list.append(a017.predict(X_test))
+      # list.append(a018.predict(X_test))
+      # list.append(a019.predict(X_test))
+      # list.append(a020.predict(X_test))
+      # list.append(a021.predict(X_test))
+      # list.append(a022.predict(X_test))
+      # list.append(a023.predict(X_test))
+      # list.append(a024.predict(X_test))
+      # list.append(a025.predict(X_test))
+      # list.append(a026.predict(X_test))
+      # list.append(a027.predict(X_test))
+      # list.append(a028.predict(X_test))
+      # list.append(a029.predict(X_test))
+
+      matrix = buildMatrix(list)
+      print(pd.DataFrame(matrix))
+
+   # @unittest.skip("Classifier")
+   def test_matriz_diff_LogisticRegression(self):
+      trainSamples = 100
+      with open('dataset/jm1.csv', newline='') as csvfile:
+         spamreader = csv.reader(csvfile, delimiter=',', quotechar='|')
+         jm1 = [row for nr, row in enumerate(spamreader)]
+         jm1_true = [j for j in jm1 if j[21] == 'true']
+         jm1_false = [j for j in jm1 if j[21] == 'false']
+         random.shuffle(jm1_true)
+         random.shuffle(jm1_false)
+         trainPart = int(trainSamples/2)            #Test sample divided between true answers and false answers
+         jm1_train = jm1_true[:trainPart]
+         jm1_train = jm1_train + jm1_false[:trainPart]
+         # jm1_test = jm1_true[trainPart:trainSamples]
+         # jm1_test = jm1_test + jm1_false[trainPart:trainSamples]
+         jm1_test = jm1_true[trainPart:]
+         jm1_test = jm1_test + jm1_false[trainPart:]         
+         random.shuffle(jm1_train)
+         random.shuffle(jm1_test)
+         jm1_test = jm1_test[:1000]
 
       Y_train = [j.pop(-1) for j in jm1_train]
       Y_train = [1 if x=='true' else 0 for x in Y_train]
@@ -357,8 +515,11 @@ class testsClassifiers(unittest.TestCase):
          X_test.append([float(j) for j in jt])
 
       from sklearn.linear_model import PassiveAggressiveClassifier
+      from sklearn.ensemble import RandomForestClassifier, AdaBoostClassifier, ExtraTreesClassifier, GradientBoostingClassifier
+      from sklearn.linear_model import LogisticRegression
       import pandas as pd
       import copy
+      from classifiers import Classifiers
 
       def buildMatrix(listClassifiers):
          matrix = []
@@ -373,115 +534,125 @@ class testsClassifiers(unittest.TestCase):
             matrix.append(copy.deepcopy(line))
          return matrix
 
-      a000 = PassiveAggressiveClassifier()
-      a001 = PassiveAggressiveClassifier()
-      a002 = PassiveAggressiveClassifier()
-      a003 = PassiveAggressiveClassifier()
-      a004 = PassiveAggressiveClassifier()
-      a005 = PassiveAggressiveClassifier()
-      a006 = PassiveAggressiveClassifier()
-      a007 = PassiveAggressiveClassifier()
-      a008 = PassiveAggressiveClassifier()
-      a009 = PassiveAggressiveClassifier()
-      a010 = PassiveAggressiveClassifier()
-      a011 = PassiveAggressiveClassifier()
-      a012 = PassiveAggressiveClassifier()
-      a013 = PassiveAggressiveClassifier()
-      a014 = PassiveAggressiveClassifier()
-      a015 = PassiveAggressiveClassifier()
-      a016 = PassiveAggressiveClassifier()
-      a017 = PassiveAggressiveClassifier()
-      a018 = PassiveAggressiveClassifier()
-      a019 = PassiveAggressiveClassifier()
-      a020 = PassiveAggressiveClassifier()
-      a021 = PassiveAggressiveClassifier()
-      a022 = PassiveAggressiveClassifier()
-      a023 = PassiveAggressiveClassifier()
-      a024 = PassiveAggressiveClassifier()
-      a025 = PassiveAggressiveClassifier()
-      a026 = PassiveAggressiveClassifier()
-      a027 = PassiveAggressiveClassifier()
-      a028 = PassiveAggressiveClassifier()
-      a029 = PassiveAggressiveClassifier()
-
-      a000.fit(X_train, Y_train)
-      a001.fit(X_train, Y_train)
-      a002.fit(X_train, Y_train)
-      a003.fit(X_train, Y_train)
-      a004.fit(X_train, Y_train)
-      a005.fit(X_train, Y_train)
-      a006.fit(X_train, Y_train)
-      a007.fit(X_train, Y_train)
-      a008.fit(X_train, Y_train)
-      a009.fit(X_train, Y_train)
-      a010.fit(X_train, Y_train)
-      a011.fit(X_train, Y_train)
-      a012.fit(X_train, Y_train)
-      a013.fit(X_train, Y_train)
-      a014.fit(X_train, Y_train)
-      a015.fit(X_train, Y_train)
-      a016.fit(X_train, Y_train)
-      a017.fit(X_train, Y_train)
-      a018.fit(X_train, Y_train)
-      a019.fit(X_train, Y_train)
-      a020.fit(X_train, Y_train)
-      a021.fit(X_train, Y_train)
-      a022.fit(X_train, Y_train)
-      a023.fit(X_train, Y_train)
-      a024.fit(X_train, Y_train)
-      a025.fit(X_train, Y_train)
-      a026.fit(X_train, Y_train)
-      a027.fit(X_train, Y_train)
-      a028.fit(X_train, Y_train)
-      a029.fit(X_train, Y_train)               
-      
+      # classifList = []
       list = []
-      list.append(a000.predict(X_test))
-      list.append(a001.predict(X_test))
-      list.append(a002.predict(X_test))
-      list.append(a003.predict(X_test))
-      list.append(a004.predict(X_test))
-      list.append(a005.predict(X_test))
-      list.append(a006.predict(X_test))
-      list.append(a007.predict(X_test))
-      list.append(a008.predict(X_test))
-      list.append(a009.predict(X_test))
-      list.append(a010.predict(X_test))
-      list.append(a011.predict(X_test))
-      list.append(a012.predict(X_test))
-      list.append(a013.predict(X_test))
-      list.append(a014.predict(X_test))
-      list.append(a015.predict(X_test))
-      list.append(a016.predict(X_test))
-      list.append(a017.predict(X_test))
-      list.append(a018.predict(X_test))
-      list.append(a019.predict(X_test))
-      list.append(a020.predict(X_test))
-      list.append(a021.predict(X_test))
-      list.append(a022.predict(X_test))
-      list.append(a023.predict(X_test))
-      list.append(a024.predict(X_test))
-      list.append(a025.predict(X_test))
-      list.append(a026.predict(X_test))
-      list.append(a027.predict(X_test))
-      list.append(a028.predict(X_test))
-      list.append(a029.predict(X_test))
+
+      c1 = LogisticRegression(random_state=0)
+      c2 = LogisticRegression(C=0.5)
+      c3 = LogisticRegression(C=0.1)
+      c4 = LogisticRegression(C=0.05)
+
+      c5 = LogisticRegression(solver='newton-cg', random_state=0)
+      c6 = LogisticRegression(solver='newton-cg', C=0.5)
+      c7 = LogisticRegression(solver='newton-cg', C=0.1)
+      c8 = LogisticRegression(solver='newton-cg', C=0.05)
+      c9 = LogisticRegression(penalty='none', solver='newton-cg', random_state=0)
+
+      c10 = LogisticRegression(penalty='l2', solver='liblinear', random_state=0)
+      c11 = LogisticRegression(penalty='l2', solver='liblinear', C=0.5)
+      c12 = LogisticRegression(penalty='l2', solver='liblinear', C=0.1)
+      c13 = LogisticRegression(penalty='l2', solver='liblinear', C=0.05)
+      # c14 = LogisticRegression(penalty='none', solver='newton-cg', random_state=0)
+
+      c14 = LogisticRegression(penalty='l1', solver='liblinear', random_state=0)
+      c15 = LogisticRegression(penalty='l1', solver='liblinear', C=0.5)
+      c16 = LogisticRegression(penalty='l1', solver='liblinear', C=0.1)
+      c17 = LogisticRegression(penalty='l1', solver='liblinear', C=0.05)
+
+      classifList = [c1, c2, c3, c4, c5, c6,c7,c8,c9,c10,c11,c12,c13,c14,c15,c16,c17]
+      listScore = []
+      ClassifiersClass = Classifiers()
+      classif = ClassifiersClass.getLogisticRegression()
+
+      # for c in classif[1]:
+      for c in classifList:
+         c.fit(X_train, Y_train)
+         list.append(copy.deepcopy(c.predict(X_test)))
+         listScore.append(copy.deepcopy(c.score(X_test, Y_test)))
+         if not hasattr(c, 'predict_proba'):
+            a = 'a'
 
       matrix = buildMatrix(list)
       print(pd.DataFrame(matrix))
-      
-      # print(a01.score(X_test, Y_test))
-      # print(a02.score(X_test, Y_test))
-      # print(a03.score(X_test, Y_test))
-      # print(a04.score(X_test, Y_test))
-      # print(a05.score(X_test, Y_test))
-      # print(a06.score(X_test, Y_test))
-      # print(a07.score(X_test, Y_test))
-      # print(a08.score(X_test, Y_test)) 
-
-
+      print(listScore)
       a = 'a'
 
+   def test_matriz_diff_PassiveAgressive(self):
+      
+      trainSamples = 100
+      X_test = []
+      X_train = []
+      Y_train = []
+      def createBase():
+         with open('dataset/jm1.csv', newline='') as csvfile:
+            spamreader = csv.reader(csvfile, delimiter=',', quotechar='|')
+            jm1 = [row for nr, row in enumerate(spamreader)]
+            jm1_true = [j for j in jm1 if j[21] == 'true']
+            jm1_false = [j for j in jm1 if j[21] == 'false']
+            random.shuffle(jm1_true)
+            random.shuffle(jm1_false)
+            trainPart = int(trainSamples/2)            #Test sample divided between true answers and false answers
+            jm1_train = jm1_true[:trainPart]
+            jm1_train = jm1_train + jm1_false[:trainPart]
+            jm1_test = jm1_true[trainPart:trainSamples]
+            jm1_test = jm1_test + jm1_false[trainPart:trainSamples]
+            # jm1_test = jm1_true[trainPart:]
+            # jm1_test = jm1_test + jm1_false[trainPart:]         
+            random.shuffle(jm1_train)
+            random.shuffle(jm1_test)
+
+         Y_train = [j.pop(-1) for j in jm1_train]
+         Y_train = [1 if x=='true' else 0 for x in Y_train]
+
+         for jt in jm1_train:
+            X_train.append([float(j) for j in jt])
+
+         Y_test = [j.pop(-1) for j in jm1_test]
+         Y_test = [1 if x=='true' else 0 for x in Y_test]
+         for jt in jm1_test:
+            X_test.append([float(j) for j in jt])
+
+      from classifiers import Classifiers
+      ClassifiersClass = Classifiers()
+      classif = ClassifiersClass.getLogisticRegression()
+
+      for c in classif[1]:
+         c.fit(X_train, Y_train)
+         list.append(copy.deepcopy(c.predict(X_test)))
+         listScore.append(copy.deepcopy(c.score(X_train, Y_train)))
+         if not hasattr(c, 'predict_proba'):
+            a = 'a'    
+   
+   def test_allEstimators(self):
+      from sklearn.utils import all_estimators
+
+      estimators = all_estimators(type_filter='classifier')
+      with open('classifiers.txt', 'w', newline='\n') as txtfile:
+         txtfile.writelines([c[0]+'\n' for c in estimators])
+
+   def test_allEstimators_proba(self):
+      from sklearn.utils import all_estimators
+
+      proba = []
+      estimators = all_estimators(type_filter='classifier')
+      with open('classifiers2.txt', 'w', newline='\n') as txtfile:
+         for name, class_ in estimators:
+            if hasattr(class_, 'predict_proba'):
+               proba.append(name)
+         txtfile.writelines([c+'\n' for c in proba])
+
+   def test_classif_proba(self):
+      ClassifiersClass = Classifiers()
+      names, classifiers = ClassifiersClass.getAll(ensembleFlag=True)
+      
+      temProba = []
+      nTem = []
+      for classif in classifiers:
+         if hasattr(classif, 'predict_proba'):
+            temProba.append(classif)
+         else:
+            nTem.append(classif)
+      a = 'a'
 
 if __name__ == "__main__":
    unittest.main()

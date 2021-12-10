@@ -1,3 +1,18 @@
 {
-   "python.pythonPath": "D:\\Users\\User\\miniconda3\\python.exe"
+   "python.pythonPath": "D:\\Users\\User\\miniconda3\\python.exe",
+   "python.testing.unittestArgs": [
+      "-v",
+      "-s",
+      ".",
+      "-p",
+      "test*.py"
+   ],
+   "python.testing.pytestEnabled": false,
+   "python.testing.nosetestsEnabled": false,
+   "python.testing.unittestEnabled": true,
+   "jupyter.runStartupCommands": [
+      "%load_ext autoreload",
+      "%autoreload 2"
+  ],
+  "python.dataScience.runStartupCommands": ["%load_ext autoreload","%autoreload 2"]
 }

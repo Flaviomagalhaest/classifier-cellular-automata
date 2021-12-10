@@ -1,5 +1,5 @@
 from numpy import true_divide
-# from graph import Graph
+from graph import Graph
 from dataGenerate import DataGenerate
 import matplotlib.pyplot as plt
 import copy
@@ -33,8 +33,8 @@ def neighborsMajorityRight(neighbors, sampleIndex, answer):
     sumRight = 0
     totalNeighbors = len(neighbors)    
     for i in range(len(neighbors)):
-        if ('predict' in neighbors[i]):          
-            sampleCell = neighbors[i]['predict'][sampleIndex]
+        if ('predict_test' in neighbors[i]):          
+            sampleCell = neighbors[i]['predict_test'][sampleIndex]
             if sampleCell == answer:
                 sumRight += 1
         else: totalNeighbors -= 1
@@ -43,28 +43,28 @@ def neighborsMajorityRight(neighbors, sampleIndex, answer):
     else: return False
 
 #Returns true if the energy of the neighbors who got it right is greater than the energy of the neighbors who got it wrong. false if not. false if tie.
-def neighborsMajorityRight(neighbors, sampleIndex, answer):
-    sumRight = 0
-    sumWrong = 0
-    totalNeighbors = len(neighbors)    
-    for i in range(len(neighbors)):
-        if ('predict' in neighbors[i]):          
-            sampleCell = neighbors[i]['predict'][sampleIndex]
-            if sampleCell == answer:
-                sumRight += neighbors[i]['energy']
-            else:
-                sumWrong += neighbors[i]['energy']
-        else: totalNeighbors -= 1
-    if sumRight > sumWrong:
-        return True
-    else: return False
+# def neighborsMajorityRight(neighbors, sampleIndex, answer):
+#     sumRight = 0
+#     sumWrong = 0
+#     totalNeighbors = len(neighbors)    
+#     for i in range(len(neighbors)):
+#         if ('predict' in neighbors[i]):          
+#             sampleCell = neighbors[i]['predict'][sampleIndex]
+#             if sampleCell == answer:
+#                 sumRight += neighbors[i]['energy']
+#             else:
+#                 sumWrong += neighbors[i]['energy']
+#         else: totalNeighbors -= 1
+#     if sumRight > sumWrong:
+#         return True
+#     else: return False
 
 def neighborsMajorityEnergy(neighbors, sampleIndex):
-    energyWhoVoteZero = sum([c['energy'] for c in neighbors if 'predict' in c and c['predict'][sampleIndex] == 0])
-    energyWhoVoteOne = sum([c['energy'] for c in neighbors if 'predict' in c and c['predict'][sampleIndex] == 1])
+    energyWhoVoteZero = sum([c['energy'] for c in neighbors if 'predict_test' in c and c['predict_test'][sampleIndex] == 0])
+    energyWhoVoteOne = sum([c['energy'] for c in neighbors if 'predict_test' in c and c['predict_test'][sampleIndex] == 1])
     # energyWhoVoteZero = sum([c['energy']*c['prob'][sampleIndex][0] for c in neighbors if 'predict' in c and c['predict'][sampleIndex] == 0])
     # energyWhoVoteOne = sum([c['energy']*c['prob'][sampleIndex][1] for c in neighbors if 'predict' in c and c['predict'][sampleIndex] == 1])
-    energyTotal = sum([c['energy'] for c in neighbors if 'predict' in c])
+    energyTotal = sum([c['energy'] for c in neighbors if 'predict_test' in c])
     return energyWhoVoteZero, energyWhoVoteOne, energyTotal
 
 #Return average of neighbors's energy
@@ -77,6 +77,9 @@ def neighborsEnergyAverage(neighbors):
     else:
         return 0
 
+def returnLowerEnergy(neighbors):
+    return min([c['energy'] for c in neighbors if 'energy' in c])
+
 #Return average energy of all matrix
 def matrixEnergyAverage(matrix):
     size = len(matrix[0])
@@ -84,8 +87,8 @@ def matrixEnergyAverage(matrix):
 
 #Return what classifies the majority neighbors choose.
 def neighborsMajorityClassify(neighbors, sampleIndex):
-    voteZero = ([c['predict'][sampleIndex] for c in neighbors]).count(0)
-    voteOne = ([c['predict'][sampleIndex] for c in neighbors]).count(1)
+    voteZero = ([c['predict_inference'][sampleIndex] for c in neighbors]).count(0)
+    voteOne = ([c['predict_inference'][sampleIndex] for c in neighbors]).count(1)
     energyZero, energyOne, energyTotal = neighborsMajorityEnergy(neighbors, sampleIndex)
     if voteOne > voteZero:
         return 1
@@ -123,18 +126,18 @@ def collectOrRelocateDeadCells(matrix, pool=[], classifiers={}, cellRealocation=
                     matrix[i][j] = {}
 
 #Return list of answers of matrix using weighted vote for each samples
-def weightedVote(matrix, rangeSampleCA):
+def weightedVote(matrix, testSamples):
     answers = []
     matrixLength = len(matrix[0])
-    for x in rangeSampleCA:
+    for x in range(0, testSamples):
         voteOne = 0
         voteZero = 0
         for i in range(matrixLength):
             for j in range(matrixLength):
-                if 'predict' in matrix[i][j]:
-                    if matrix[i][j]['predict'][x] == 0:
+                if 'predict_test' in matrix[i][j]:
+                    if matrix[i][j]['predict_test'][x] == 0:
                         voteZero += matrix[i][j]['energy']
-                    if matrix[i][j]['predict'][x] == 1:
+                    if matrix[i][j]['predict_test'][x] == 1:
                         voteOne += matrix[i][j]['energy']
         if voteOne > voteZero:
             answers.append(1)
@@ -154,11 +157,11 @@ def weightedVote2(matrix, rangeSampleCA):
         ZeroEnergy = 0
         for i in range(matrixLength):
             for j in range(matrixLength):
-                if 'predict' in matrix[i][j]:
-                    if matrix[i][j]['predict'][x] == 0:
+                if 'predict_test' in matrix[i][j]:
+                    if matrix[i][j]['predict_test'][x] == 0:
                         voteZero += 1
                         ZeroEnergy += matrix[i][j]['energy']
-                    if matrix[i][j]['predict'][x] == 1:
+                    if matrix[i][j]['predict_test'][x] == 1:
                         voteOne += 1
                         OneEnergy += matrix[i][j]['energy']
         if voteOne > voteZero:
@@ -240,12 +243,14 @@ def transactionRuleB(currentEnergy, averageMatrix, x):
     # return round(currentEnergy + (averageNeighbors * 0.005),1)
 
 def transactionRuleC(currentEnergy, averageNeighbors, x):
-    return round(currentEnergy - x, 2)
-    # return round(currentEnergy - (averageNeighbors * x),2)
+    # return round(currentEnergy - x, 2)
+    return round(currentEnergy - (averageNeighbors * x),2)
+    # return round(currentEnergy - (currentEnergy * x),2)
 
 def transactionRuleD(currentEnergy, averageNeighbors, x):
-    return round(currentEnergy - x, 2)
-    # return round(currentEnergy - (averageNeighbors * x),2)
+    # return round(currentEnergy - x, 2)
+    return round(currentEnergy - (averageNeighbors * x),2)
+    # return round(currentEnergy - (currentEnergy * x),2)
 
 def restartEnergyMatrix(matrix, energy=100):
     matrixLength = len(matrix[0])
@@ -267,11 +272,12 @@ def algorithmCCA(matrix, Y_test_cf, nrCells, distance, pool, classif, params, qt
                     #return of classifier of neighbors. True if majority right.
                     majorityNeighborsClassifier = neighborsMajorityRight(neighbors, sample, Y_test_cf[sample])
                     averageNeighborsEnergy = neighborsEnergyAverage(neighbors)
+                    lowerNeighborsEnergy = returnLowerEnergy(neighbors)
                     averageMatrixEnergy = matrixEnergyAverage(matrix)
                     
                     #value of sample classified
-                    if 'predict' in matrix[i][j]:
-                        cellSample = matrix[i][j]['predict'][sample]
+                    if 'predict_test' in matrix[i][j]:
+                        cellSample = matrix[i][j]['predict_test'][sample]
                         currentEnergy = copy.deepcopy(matrix[i][j]['energy'])
                         if cellSample == Y_test_cf[sample]:
                             #Classifier is right
@@ -286,28 +292,28 @@ def algorithmCCA(matrix, Y_test_cf, nrCells, distance, pool, classif, params, qt
                             else:
                                 matrix[i][j]['energy'] = transactionRuleD(currentEnergy, averageNeighborsEnergy, params['TRD'])
                     DataGenerate.saveStatus(matrix, classif, x, sample, i, j)
-                    collectOrRelocateDeadCells(matrix, pool, classif, learning, averageNeighborsEnergy)
+                    collectOrRelocateDeadCells(matrix, pool, classif, learning, lowerNeighborsEnergy)
             # Graph.printMatrixInteractiveEnergy(matrix)
         print('it: '+str(x)+' '+ str(returnMatrixOfIndividualItem(matrix, 'energy')))
         # Graph.printMatrixInteractiveEnergy(matrix)
         # print("iteracao "+str(x))
 
-def inferenceAlgorithm(matrix, nrCells, distance, params, rangeSampleCA, qtdIteration=100):
+def inferenceAlgorithm(matrix, nrCells, distance, params, testSamples, qtdIteration=100):
     classification = []
     # matrixSample = copy.deepcopy(matrix)
-    for sample in rangeSampleCA:
+    for sample in range(0, testSamples):
         matrixSample = copy.deepcopy(matrix)
         for x in range(qtdIteration):
             for i in range(nrCells):
                 for j in range(nrCells):
-                    if 'predict' in matrixSample[i][j]:
+                    if 'predict_inference' in matrixSample[i][j]:
                         neighbors = []
                         #neighbors of current cell
                         neighbors = returnNeighboringClassifiers(nrCells, nrCells, i, j, distance, matrixSample)
                         neighborsVote = neighborsMajorityClassify(neighbors, sample)
                         averageNeighborsEnergy = neighborsEnergyAverage(neighbors)
                         averageMatrixEnergy = matrixEnergyAverage(matrix)
-                        cellSample = matrixSample[i][j]['predict'][sample]
+                        cellSample = matrixSample[i][j]['predict_test'][sample]
                         if cellSample == neighborsVote:
                             matrixSample[i][j]['energy'] = transactionRuleA(matrixSample[i][j]['energy'], averageMatrixEnergy, params['TRA'])
                         else:
@@ -318,6 +324,7 @@ def inferenceAlgorithm(matrix, nrCells, distance, params, rangeSampleCA, qtdIter
             a = 'a'
         # print("sample "+str(sample))
         classification.append(weightedVoteforSample(matrixSample, sample))
+        print('sample: '+str(sample)+' '+ str(returnMatrixOfIndividualItem(matrixSample, 'energy')))
         # printMatrix(matrixSample)
     return classification
 

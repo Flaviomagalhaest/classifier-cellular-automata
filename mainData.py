@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import matplotlib.ticker as ticker
 import matplotlib.animation as animation
 from IPython.display import HTML
-from graph import BarChartRace
+# from graph import BarChartRace
 from collections import Counter
 from datetime import datetime
 
@@ -138,7 +138,7 @@ def createDfListt():
          for x in range(matrixSize):
             matrixOfY = []
             for y in range(matrixSize):             
-               c = copy.deepcopy(classif[matrixGenerate[x][y]]['predict'][i+len(predictAnswerOfCA)])  #Remember here that predict in full range and not only CA test range
+               c = copy.deepcopy(classif[matrixGenerate[x][y]]['predict'][i])  #Remember here that predict in full range and not only CA test range
                c = int(c)
                e = copy.deepcopy(energyList[-1][matrixGenerate[x][y]])
                matrixOfY.append((c,e))
