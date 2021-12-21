@@ -118,14 +118,14 @@ def trainClassif(X_train, Y_train, X_test, Y_test):
             # c['confidence'] = clf.decision_function(X_test)
             # c['confAvg'], c['confAvgWhenWrong'], c['confAvgWhenRight'] =  cca.confidenceInClassification(c['predict'], Y_test, c['confidence'])
             # c['score'] = clf.score(X_test_ca, Y_test_ca)
-            c['score'] = clf.score(X_test, Y_test)
+            c['score'] = clf.score(X_test_ca, Y_test_ca)
             c['energy'] = energyInit
             classif[name] = c
         except:
             print("Unexpected error:", sys.exc_info()[0])
         finally:
             continue
-
+    
     #shuffling classifiers for the pool
     poolClassif = list(classif.keys())
     random.shuffle(poolClassif)
@@ -155,6 +155,7 @@ def buildPool(classif):
 for repeat in range(30):
     X_train, X_test, Y_train, Y_test, X_test_cf, Y_test_cf, X_test_ca, Y_test_ca, rangeSampleCA = dataset()
     poolClassif, classif = trainClassif(X_train, Y_train, X_test, Y_test)
+    
     matrix = buildMatrix(classif, poolClassif)
     # buildPool(classif)
     DataGenerate(Y_test_ca, classif)
@@ -170,7 +171,7 @@ for repeat in range(30):
     # Graph.printMatrixInteractiveEnergy(matrix, 'energy')
     answersList = cca.weightedVote(matrix, rangeSampleCA)
     score = cca.returnScore(Y_test_ca, answersList)
-    # DataGenerate.file(score, answersList)
+    DataGenerate.file(score, answersList)
     print("Maior score encontrado: " + str(max([classif[c]['score'] for c in classif])))
     print("Menor score encontrado: " + str(min([classif[c]['score'] for c in classif])))
     print(score)

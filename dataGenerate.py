@@ -120,8 +120,6 @@ class DataGenerate:
                list.append(copy.deepcopy(obj))
          return list
          
-      
-      
       cMax = max([c[1] for c in DataGenerate.classifiers])
       cMin = min([c[1] for c in DataGenerate.classifiers])
       listQtdDeads = []

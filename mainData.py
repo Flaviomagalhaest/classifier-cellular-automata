@@ -24,7 +24,7 @@ dfClassifiers = {}
 dfEnergy = {}
 
 ###### PARAMS #######
-matrixSize = 7
+matrixSize = 5
 
 def loadPredictCSV():
    with open('file/predict.csv', newline='') as csvfile:
