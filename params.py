@@ -2,7 +2,7 @@ class Params:
    def get():
       obj = {}
       obj['energyInit'] = 100                     #Initial energy of cells
-      obj['nrCells'] = 7                        #Size of matrix (ex. nrCells = 5 -> matrix 5x5)
+      obj['nrCells'] = 5                        #Size of matrix (ex. nrCells = 5 -> matrix 5x5)
       obj['t'] = 10                            #Number of iteractions
       obj['distance'] = 2                       #Euclidean distance of matrix 
       obj['sample'] = 0          

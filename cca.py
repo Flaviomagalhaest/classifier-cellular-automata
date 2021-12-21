@@ -298,7 +298,6 @@ def inferenceAlgorithm(matrix, nrCells, distance, params, rangeSampleCA, qtdIter
                         if matrixSample[i][j]['energy'] <= 0:
                             matrixSample[i][j] = {}
                     # collectOrRelocateDeadCells(matrixSample)
-            a = 'a'
         # print("sample "+str(sample))
         classification.append(weightedVoteforSample(matrixSample, sample))
         # printMatrix(matrixSample)

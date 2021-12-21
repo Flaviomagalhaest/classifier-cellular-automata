@@ -1,13 +1,17 @@
 import unittest
 import cca, random, csv
-from graph import Graph
-
 import numpy as np
+import copy
+import pandas as pd
+
+from classifiers import Classifiers
 from sklearn.linear_model import SGDClassifier
 from sklearn.svm import SVC
 from sklearn.datasets import make_classification
 from sklearn.model_selection import train_test_split
 from sklearn.covariance import OAS
+from classifiers import Classifiers
+from graph import Graph
 
 
 #ARRUMAR CLASSES DOS TESTES UNITÁRIOS
@@ -335,14 +339,219 @@ class testPlots(unittest.TestCase):
       a='a'
 
 class testsClassifiers(unittest.TestCase):
-   def test_classifier(self):
+   def _createBase(self, trainSamples):
+      X_test = []
+      X_train = []
+      Y_train = []
       with open('dataset/jm1.csv', newline='') as csvfile:
          spamreader = csv.reader(csvfile, delimiter=',', quotechar='|')
-         csvCount = 0
          jm1 = [row for nr, row in enumerate(spamreader)]
-         random.shuffle(jm1)
-         jm1_test = jm1[0:1000]
-         jm1_train = jm1[1000:2000]
+         jm1_true = [j for j in jm1 if j[21] == 'true']
+         jm1_false = [j for j in jm1 if j[21] == 'false']
+         random.shuffle(jm1_true)
+         random.shuffle(jm1_false)
+         trainPart = int(trainSamples/2)            #Test sample divided between true answers and false answers
+         jm1_train = jm1_true[:trainPart]
+         jm1_train = jm1_train + jm1_false[:trainPart]
+         # jm1_test = jm1_true[trainPart:trainSamples]
+         # jm1_test = jm1_test + jm1_false[trainPart:trainSamples]
+         jm1_test = jm1_true[trainPart:]
+         jm1_test = jm1_test + jm1_false[trainPart:]         
+         random.shuffle(jm1_train)
+         random.shuffle(jm1_test)
+         jm1_test = jm1_test[:trainSamples]
+
+      Y_train = [j.pop(-1) for j in jm1_train]
+      Y_train = [1 if x=='true' else 0 for x in Y_train]
+
+      for jt in jm1_train:
+         X_train.append([float(j) for j in jt])
+
+      Y_test = [j.pop(-1) for j in jm1_test]
+      Y_test = [1 if x=='true' else 0 for x in Y_test]
+      for jt in jm1_test:
+         X_test.append([float(j) for j in jt])
+      
+      return X_test, X_train, Y_train, Y_test
+
+   def _buildMatrix(self, listClassifiers):
+      matrix = []
+      for c1 in listClassifiers:
+         line = []
+         for c2 in listClassifiers:
+            count = 0
+            for i in range(len(c2)):
+               if c1[i] != c2 [i]:
+                  count += 1
+            line.append(count)
+         matrix.append(copy.deepcopy(line))
+      return matrix
+
+   @unittest.skip("Classifier")
+   def buildMatrix(listClassifiers):
+      matrix = []
+      for c1 in listClassifiers:
+         line = []
+         for c2 in listClassifiers:
+            count = 0
+            for i in range(len(c2)):
+               if c1[i] != c2 [i]:
+                  count += 1
+            line.append(count)
+         matrix.append(copy.deepcopy(line))
+      return matrix
+   
+   @unittest.skip("Classifier")
+   def test_classifier(self):
+      trainSamples = 100
+      with open('dataset/jm1.csv', newline='') as csvfile:
+         spamreader = csv.reader(csvfile, delimiter=',', quotechar='|')
+         jm1 = [row for nr, row in enumerate(spamreader)]
+         jm1_true = [j for j in jm1 if j[21] == 'true']
+         jm1_false = [j for j in jm1 if j[21] == 'false']
+         random.shuffle(jm1_true)
+         random.shuffle(jm1_false)
+         trainPart = int(trainSamples/2)            #Test sample divided between true answers and false answers
+         jm1_train = jm1_true[:trainPart]
+         jm1_train = jm1_train + jm1_false[:trainPart]
+         jm1_test = jm1_true[trainPart:trainSamples]
+         jm1_test = jm1_test + jm1_false[trainPart:trainSamples]
+         random.shuffle(jm1_train)
+         random.shuffle(jm1_test)
+
+      Y_train = [j.pop(-1) for j in jm1_train]
+      Y_train = [1 if x=='true' else 0 for x in Y_train]
+      X_train = []
+      for jt in jm1_train:
+         X_train.append([float(j) for j in jt])
+
+      Y_test = [j.pop(-1) for j in jm1_test]
+      Y_test = [1 if x=='true' else 0 for x in Y_test]
+      X_test = []
+      for jt in jm1_test:
+         X_test.append([float(j) for j in jt])
+
+      from sklearn.linear_model import PassiveAggressiveClassifier, LogisticRegression
+      import pandas as pd
+      import copy
+
+      a000 = LogisticRegression()
+      # a001 = PassiveAggressiveClassifier()
+      # a002 = PassiveAggressiveClassifier()
+      # a003 = PassiveAggressiveClassifier()
+      # a004 = PassiveAggressiveClassifier()
+      # a005 = PassiveAggressiveClassifier()
+      # a006 = PassiveAggressiveClassifier()
+      # a007 = PassiveAggressiveClassifier()
+      # a008 = PassiveAggressiveClassifier()
+      # a009 = PassiveAggressiveClassifier()
+      # a010 = PassiveAggressiveClassifier()
+      # a011 = PassiveAggressiveClassifier()
+      # a012 = PassiveAggressiveClassifier()
+      # a013 = PassiveAggressiveClassifier()
+      # a014 = PassiveAggressiveClassifier()
+      # a015 = PassiveAggressiveClassifier()
+      # a016 = PassiveAggressiveClassifier()
+      # a017 = PassiveAggressiveClassifier()
+      # a018 = PassiveAggressiveClassifier()
+      # a019 = PassiveAggressiveClassifier()
+      # a020 = PassiveAggressiveClassifier()
+      # a021 = PassiveAggressiveClassifier()
+      # a022 = PassiveAggressiveClassifier()
+      # a023 = PassiveAggressiveClassifier()
+      # a024 = PassiveAggressiveClassifier()
+      # a025 = PassiveAggressiveClassifier()
+      # a026 = PassiveAggressiveClassifier()
+      # a027 = PassiveAggressiveClassifier()
+      # a028 = PassiveAggressiveClassifier()
+      # a029 = PassiveAggressiveClassifier()
+
+      a000.fit(X_train, Y_train)
+      # a001.fit(X_train, Y_train)
+      # a002.fit(X_train, Y_train)
+      # a003.fit(X_train, Y_train)
+      # a004.fit(X_train, Y_train)
+      # a005.fit(X_train, Y_train)
+      # a006.fit(X_train, Y_train)
+      # a007.fit(X_train, Y_train)
+      # a008.fit(X_train, Y_train)
+      # a009.fit(X_train, Y_train)
+      # a010.fit(X_train, Y_train)
+      # a011.fit(X_train, Y_train)
+      # a012.fit(X_train, Y_train)
+      # a013.fit(X_train, Y_train)
+      # a014.fit(X_train, Y_train)
+      # a015.fit(X_train, Y_train)
+      # a016.fit(X_train, Y_train)
+      # a017.fit(X_train, Y_train)
+      # a018.fit(X_train, Y_train)
+      # a019.fit(X_train, Y_train)
+      # a020.fit(X_train, Y_train)
+      # a021.fit(X_train, Y_train)
+      # a022.fit(X_train, Y_train)
+      # a023.fit(X_train, Y_train)
+      # a024.fit(X_train, Y_train)
+      # a025.fit(X_train, Y_train)
+      # a026.fit(X_train, Y_train)
+      # a027.fit(X_train, Y_train)
+      # a028.fit(X_train, Y_train)
+      # a029.fit(X_train, Y_train)  
+      
+      list = []
+      list.append(a000.predict(X_test))
+      # list.append(a001.predict(X_test))
+      # list.append(a002.predict(X_test))
+      # list.append(a003.predict(X_test))
+      # list.append(a004.predict(X_test))
+      # list.append(a005.predict(X_test))
+      # list.append(a006.predict(X_test))
+      # list.append(a007.predict(X_test))
+      # list.append(a008.predict(X_test))
+      # list.append(a009.predict(X_test))
+      # list.append(a010.predict(X_test))
+      # list.append(a011.predict(X_test))
+      # list.append(a012.predict(X_test))
+      # list.append(a013.predict(X_test))
+      # list.append(a014.predict(X_test))
+      # list.append(a015.predict(X_test))
+      # list.append(a016.predict(X_test))
+      # list.append(a017.predict(X_test))
+      # list.append(a018.predict(X_test))
+      # list.append(a019.predict(X_test))
+      # list.append(a020.predict(X_test))
+      # list.append(a021.predict(X_test))
+      # list.append(a022.predict(X_test))
+      # list.append(a023.predict(X_test))
+      # list.append(a024.predict(X_test))
+      # list.append(a025.predict(X_test))
+      # list.append(a026.predict(X_test))
+      # list.append(a027.predict(X_test))
+      # list.append(a028.predict(X_test))
+      # list.append(a029.predict(X_test))
+
+      matrix = buildMatrix(list)
+      print(pd.DataFrame(matrix))
+
+   @unittest.skip("Classifier")
+   def test_matriz_diff_LogisticRegression(self):
+      trainSamples = 100
+      with open('dataset/jm1.csv', newline='') as csvfile:
+         spamreader = csv.reader(csvfile, delimiter=',', quotechar='|')
+         jm1 = [row for nr, row in enumerate(spamreader)]
+         jm1_true = [j for j in jm1 if j[21] == 'true']
+         jm1_false = [j for j in jm1 if j[21] == 'false']
+         random.shuffle(jm1_true)
+         random.shuffle(jm1_false)
+         trainPart = int(trainSamples/2)            #Test sample divided between true answers and false answers
+         jm1_train = jm1_true[:trainPart]
+         jm1_train = jm1_train + jm1_false[:trainPart]
+         # jm1_test = jm1_true[trainPart:trainSamples]
+         # jm1_test = jm1_test + jm1_false[trainPart:trainSamples]
+         jm1_test = jm1_true[trainPart:]
+         jm1_test = jm1_test + jm1_false[trainPart:]         
+         random.shuffle(jm1_train)
+         random.shuffle(jm1_test)
+         jm1_test = jm1_test[:1000]
 
       Y_train = [j.pop(-1) for j in jm1_train]
       Y_train = [1 if x=='true' else 0 for x in Y_train]
@@ -357,8 +566,11 @@ class testsClassifiers(unittest.TestCase):
          X_test.append([float(j) for j in jt])
 
       from sklearn.linear_model import PassiveAggressiveClassifier
+      from sklearn.ensemble import RandomForestClassifier, AdaBoostClassifier, ExtraTreesClassifier, GradientBoostingClassifier
+      from sklearn.linear_model import LogisticRegression
       import pandas as pd
       import copy
+      from classifiers import Classifiers
 
       def buildMatrix(listClassifiers):
          matrix = []
@@ -373,115 +585,363 @@ class testsClassifiers(unittest.TestCase):
             matrix.append(copy.deepcopy(line))
          return matrix
 
-      a000 = PassiveAggressiveClassifier()
-      a001 = PassiveAggressiveClassifier()
-      a002 = PassiveAggressiveClassifier()
-      a003 = PassiveAggressiveClassifier()
-      a004 = PassiveAggressiveClassifier()
-      a005 = PassiveAggressiveClassifier()
-      a006 = PassiveAggressiveClassifier()
-      a007 = PassiveAggressiveClassifier()
-      a008 = PassiveAggressiveClassifier()
-      a009 = PassiveAggressiveClassifier()
-      a010 = PassiveAggressiveClassifier()
-      a011 = PassiveAggressiveClassifier()
-      a012 = PassiveAggressiveClassifier()
-      a013 = PassiveAggressiveClassifier()
-      a014 = PassiveAggressiveClassifier()
-      a015 = PassiveAggressiveClassifier()
-      a016 = PassiveAggressiveClassifier()
-      a017 = PassiveAggressiveClassifier()
-      a018 = PassiveAggressiveClassifier()
-      a019 = PassiveAggressiveClassifier()
-      a020 = PassiveAggressiveClassifier()
-      a021 = PassiveAggressiveClassifier()
-      a022 = PassiveAggressiveClassifier()
-      a023 = PassiveAggressiveClassifier()
-      a024 = PassiveAggressiveClassifier()
-      a025 = PassiveAggressiveClassifier()
-      a026 = PassiveAggressiveClassifier()
-      a027 = PassiveAggressiveClassifier()
-      a028 = PassiveAggressiveClassifier()
-      a029 = PassiveAggressiveClassifier()
-
-      a000.fit(X_train, Y_train)
-      a001.fit(X_train, Y_train)
-      a002.fit(X_train, Y_train)
-      a003.fit(X_train, Y_train)
-      a004.fit(X_train, Y_train)
-      a005.fit(X_train, Y_train)
-      a006.fit(X_train, Y_train)
-      a007.fit(X_train, Y_train)
-      a008.fit(X_train, Y_train)
-      a009.fit(X_train, Y_train)
-      a010.fit(X_train, Y_train)
-      a011.fit(X_train, Y_train)
-      a012.fit(X_train, Y_train)
-      a013.fit(X_train, Y_train)
-      a014.fit(X_train, Y_train)
-      a015.fit(X_train, Y_train)
-      a016.fit(X_train, Y_train)
-      a017.fit(X_train, Y_train)
-      a018.fit(X_train, Y_train)
-      a019.fit(X_train, Y_train)
-      a020.fit(X_train, Y_train)
-      a021.fit(X_train, Y_train)
-      a022.fit(X_train, Y_train)
-      a023.fit(X_train, Y_train)
-      a024.fit(X_train, Y_train)
-      a025.fit(X_train, Y_train)
-      a026.fit(X_train, Y_train)
-      a027.fit(X_train, Y_train)
-      a028.fit(X_train, Y_train)
-      a029.fit(X_train, Y_train)               
-      
+      # classifList = []
       list = []
-      list.append(a000.predict(X_test))
-      list.append(a001.predict(X_test))
-      list.append(a002.predict(X_test))
-      list.append(a003.predict(X_test))
-      list.append(a004.predict(X_test))
-      list.append(a005.predict(X_test))
-      list.append(a006.predict(X_test))
-      list.append(a007.predict(X_test))
-      list.append(a008.predict(X_test))
-      list.append(a009.predict(X_test))
-      list.append(a010.predict(X_test))
-      list.append(a011.predict(X_test))
-      list.append(a012.predict(X_test))
-      list.append(a013.predict(X_test))
-      list.append(a014.predict(X_test))
-      list.append(a015.predict(X_test))
-      list.append(a016.predict(X_test))
-      list.append(a017.predict(X_test))
-      list.append(a018.predict(X_test))
-      list.append(a019.predict(X_test))
-      list.append(a020.predict(X_test))
-      list.append(a021.predict(X_test))
-      list.append(a022.predict(X_test))
-      list.append(a023.predict(X_test))
-      list.append(a024.predict(X_test))
-      list.append(a025.predict(X_test))
-      list.append(a026.predict(X_test))
-      list.append(a027.predict(X_test))
-      list.append(a028.predict(X_test))
-      list.append(a029.predict(X_test))
+
+      c1 = LogisticRegression(random_state=0)
+      c2 = LogisticRegression(C=0.5)
+      c3 = LogisticRegression(C=0.1)
+      c4 = LogisticRegression(C=0.05)
+
+      c5 = LogisticRegression(solver='newton-cg', random_state=0)
+      c6 = LogisticRegression(solver='newton-cg', C=0.5)
+      c7 = LogisticRegression(solver='newton-cg', C=0.1)
+      c8 = LogisticRegression(solver='newton-cg', C=0.05)
+      c9 = LogisticRegression(penalty='none', solver='newton-cg', random_state=0)
+
+      c10 = LogisticRegression(penalty='l2', solver='liblinear', random_state=0)
+      c11 = LogisticRegression(penalty='l2', solver='liblinear', C=0.5)
+      c12 = LogisticRegression(penalty='l2', solver='liblinear', C=0.1)
+      c13 = LogisticRegression(penalty='l2', solver='liblinear', C=0.05)
+      # c14 = LogisticRegression(penalty='none', solver='newton-cg', random_state=0)
+
+      c14 = LogisticRegression(penalty='l1', solver='liblinear', random_state=0)
+      c15 = LogisticRegression(penalty='l1', solver='liblinear', C=0.5)
+      c16 = LogisticRegression(penalty='l1', solver='liblinear', C=0.1)
+      c17 = LogisticRegression(penalty='l1', solver='liblinear', C=0.05)
+
+      classifList = [c1, c2, c3, c4, c5, c6,c7,c8,c9,c10,c11,c12,c13,c14,c15,c16,c17]
+      listScore = []
+      ClassifiersClass = Classifiers()
+      classif = ClassifiersClass.getLogisticRegression()
+
+      # for c in classif[1]:
+      for c in classifList:
+         c.fit(X_train, Y_train)
+         list.append(copy.deepcopy(c.predict(X_test)))
+         listScore.append(copy.deepcopy(c.score(X_test, Y_test)))
+         if not hasattr(c, 'predict_proba'):
+            a = 'a'
 
       matrix = buildMatrix(list)
       print(pd.DataFrame(matrix))
-      
-      # print(a01.score(X_test, Y_test))
-      # print(a02.score(X_test, Y_test))
-      # print(a03.score(X_test, Y_test))
-      # print(a04.score(X_test, Y_test))
-      # print(a05.score(X_test, Y_test))
-      # print(a06.score(X_test, Y_test))
-      # print(a07.score(X_test, Y_test))
-      # print(a08.score(X_test, Y_test)) 
-
-
+      print(listScore)
       a = 'a'
+   
+   @unittest.skip("Classifier")
+   def test_matriz_diff_PassiveAgressive(self):
 
+      ClassifiersClass = Classifiers()
+      classif = ClassifiersClass.getPassiveAgressive()
+      listScore = []
+
+      X_test, X_train, Y_train, Y_test = self._createBase(100)
+      list = []
+
+      for c in classif[1]:
+         c.fit(X_train, Y_train)
+         list.append(copy.deepcopy(c.predict(X_test)))
+         listScore.append(copy.deepcopy(c.score(X_test, Y_test))) 
+
+      matrix = self._buildMatrix(list)
+      print(pd.DataFrame(matrix))
+      print(listScore)
+      pass
+
+   @unittest.skip("Classifier")
+   def test_matriz_diff_Ridge(self):
+
+      ClassifiersClass = Classifiers()
+      classif = ClassifiersClass.geRidget()
+
+      X_test, X_train, Y_train, Y_test = self._createBase(200)      
+      list = []
+      listScore = []
+
+      from sklearn.linear_model import RidgeClassifier
+
+      c0 = RidgeClassifier(solver='svd')
+      c1 = RidgeClassifier(alpha=2.5,solver='svd')
+      c2 = RidgeClassifier(alpha=5,solver='svd')
+      c3 = RidgeClassifier(alpha=0.5,solver='svd')
+      c4 = RidgeClassifier(fit_intercept=False,solver='svd')
+      c5 = RidgeClassifier(alpha=2.5,fit_intercept=False,solver='svd')
+      c6 = RidgeClassifier(alpha=5,fit_intercept=False,solver='svd')
+      c7 = RidgeClassifier(alpha=0.5,fit_intercept=False,solver='svd')
+      c8 = RidgeClassifier(solver='sparse_cg')
+      c9 = RidgeClassifier(solver='lsqr')
+      c10 = RidgeClassifier(solver='sag')
+
+      classifiers = [c0,c1,c2,c3,c4,c5,c6,c7,c8,c9,c10]
+
+      for c in classif[1]:
+      # for c in classifiers:
+         c.fit(X_train, Y_train)
+         list.append(copy.deepcopy(c.predict(X_test)))
+         listScore.append(copy.deepcopy(c.score(X_test, Y_test))) 
+
+      matrix = self._buildMatrix(list)
+      print(pd.DataFrame(matrix))
+      print(listScore)
+      pass
+
+   @unittest.skip("Classifier")
+   def test_matriz_diff_SGD(self):
+
+      ClassifiersClass = Classifiers()
+      classif = ClassifiersClass.geRidget()
+
+      X_test, X_train, Y_train, Y_test = self._createBase(200)      
+      list = []
+      listScore = []
+
+      from sklearn.linear_model import SGDClassifier
+
+      c0 = SGDClassifier(loss="hinge", penalty="elasticnet")
+      c1 = SGDClassifier(loss="log")
+      c2 = SGDClassifier(loss="modified_huber")
+      c3 = SGDClassifier(loss="squared_hinge")
+      c4 = SGDClassifier(loss="perceptron")
+      c5 = SGDClassifier(loss='huber')
+      c6 = SGDClassifier(loss='epsilon_insensitive')
+      c7 = SGDClassifier(loss="squared_loss")
+
+      classifiers = [c0,c1,c2,c3,c4,c5,c6,c7]
+
+      # for c in classif[1]:
+      for c in classifiers:
+         c.fit(X_train, Y_train)
+         list.append(copy.deepcopy(c.predict(X_test)))
+         listScore.append(copy.deepcopy(c.score(X_test, Y_test))) 
+
+      matrix = self._buildMatrix(list)
+      print(pd.DataFrame(matrix))
+      print(listScore)
+      pass
+
+   @unittest.skip("Classifier")
+   def test_matriz_diff_Adaboost(self):
+
+      ClassifiersClass = Classifiers()
+      classif = ClassifiersClass.getEnsembleAdaboost()
+
+      X_test, X_train, Y_train, Y_test = self._createBase(200)      
+      list = []
+      listScore = []
+
+      from sklearn.ensemble import AdaBoostClassifier
+      from sklearn.svm import SVC
+
+      c0 = AdaBoostClassifier(n_estimators=50)
+      c1 = AdaBoostClassifier(n_estimators=500)
+      c2 = AdaBoostClassifier(n_estimators=1000)
+      c3 = AdaBoostClassifier(n_estimators=50, learning_rate=0.1)
+      c4 = AdaBoostClassifier(n_estimators=500, learning_rate=0.1)
+      c5 = AdaBoostClassifier(n_estimators=1000, learning_rate=0.1)
+      c6 = AdaBoostClassifier(n_estimators=50, learning_rate=0.5)
+      c7 = AdaBoostClassifier(n_estimators=500, learning_rate=0.5)
+      c8 = AdaBoostClassifier(n_estimators=1000, learning_rate=0.5)
+      c9 = AdaBoostClassifier(n_estimators=50, random_state=5)
+      c10 = AdaBoostClassifier(n_estimators=500, random_state=5)
+      c11 = AdaBoostClassifier(n_estimators=1000, random_state=5)
+      c12 = AdaBoostClassifier(n_estimators=50, learning_rate=0.1, random_state=5)
+      c13 = AdaBoostClassifier(n_estimators=500, learning_rate=0.1, random_state=5)
+      c14 = AdaBoostClassifier(n_estimators=1000, learning_rate=0.1, random_state=5)
+      c15 = AdaBoostClassifier(n_estimators=50, learning_rate=0.5, random_state=5)
+      c16 = AdaBoostClassifier(n_estimators=500, learning_rate=0.5, random_state=5)
+      c17 = AdaBoostClassifier(n_estimators=1000, learning_rate=0.5, random_state=5)
+
+      classifiers = [c0,c1,c2,c3,c4,c5,c6,c7,c8]
+      classifiers = classifiers + [c9,c10,c11,c12,c13,c14,c15,c16,c17]
+
+      # for c in classif[1]:
+      for c in classifiers:
+         c.fit(X_train, Y_train)
+         list.append(copy.deepcopy(c.predict(X_test)))
+         listScore.append(copy.deepcopy(c.score(X_test, Y_test))) 
+
+      matrix = self._buildMatrix(list)
+      print(pd.DataFrame(matrix))
+      print(listScore)
+      pass
+
+   @unittest.skip("Classifier")
+   def test_matriz_diff_Bagging(self):
+
+      ClassifiersClass = Classifiers()
+      classif = ClassifiersClass.getEnsembleBagging()
+
+      X_test, X_train, Y_train, Y_test = self._createBase(200)      
+      list = []
+      listScore = []
+
+      from sklearn.ensemble import BaggingClassifier
+
+      c0 = BaggingClassifier()
+      c1 = BaggingClassifier(n_estimators=50)
+      c2 = BaggingClassifier(n_estimators=250)
+      c3 = BaggingClassifier(n_estimators=500)
+      c4 = BaggingClassifier(max_samples=0.1)
+      c5 = BaggingClassifier(n_estimators=50,max_samples=0.1)
+      c6 = BaggingClassifier(n_estimators=250,max_samples=0.1)
+      c7 = BaggingClassifier(n_estimators=500,max_samples=0.1)
+      c8 = BaggingClassifier(bootstrap=False)
+      c9 = BaggingClassifier(n_estimators=50,bootstrap=False)
+      c10 = BaggingClassifier(n_estimators=250,bootstrap=False)
+      c11 = BaggingClassifier(n_estimators=500,bootstrap=False)
+      c12 = BaggingClassifier(max_samples=0.1,bootstrap=False)
+      c13 = BaggingClassifier(n_estimators=50,max_samples=0.1,bootstrap=False)
+      c14 = BaggingClassifier(n_estimators=250,max_samples=0.1,bootstrap=False)
+      c15 = BaggingClassifier(n_estimators=500,max_samples=0.1,bootstrap=False)
+      c16 = BaggingClassifier(bootstrap_features=True)
+      c17 = BaggingClassifier(n_estimators=50,bootstrap_features=True)
+      c18 = BaggingClassifier(n_estimators=250,bootstrap_features=True)
+      c19 = BaggingClassifier(n_estimators=500,bootstrap_features=True)
+      c20 = BaggingClassifier(max_samples=0.1,bootstrap_features=True)
+      c21 = BaggingClassifier(n_estimators=50,max_samples=0.1,bootstrap_features=True)
+      c22 = BaggingClassifier(n_estimators=250,max_samples=0.1,bootstrap_features=True)
+      c23 = BaggingClassifier(n_estimators=500,max_samples=0.1,bootstrap_features=True)
+      c24 = BaggingClassifier(bootstrap=False,bootstrap_features=True)
+      c25 = BaggingClassifier(n_estimators=50,bootstrap=False,bootstrap_features=True)
+      c26 = BaggingClassifier(n_estimators=250,bootstrap=False,bootstrap_features=True)
+      c27 = BaggingClassifier(n_estimators=500,bootstrap=False,bootstrap_features=True)
+      c28 = BaggingClassifier(max_samples=0.1,bootstrap=False,bootstrap_features=True)
+      c29 = BaggingClassifier(n_estimators=50,max_samples=0.1,bootstrap=False,bootstrap_features=True)
+      c30 = BaggingClassifier(n_estimators=250,max_samples=0.1,bootstrap=False,bootstrap_features=True)
+      c31 = BaggingClassifier(n_estimators=500,max_samples=0.1,bootstrap=False,bootstrap_features=True)
+
+      classifiers = [c0,c1,c2,c3,c4,c5,c6,c7]
+      classifiers = classifiers + [c8,c9,c10,c11,c12,c13,c14,c15]
+      classifiers = classifiers + [c16,c17,c18,c19,c20,c21,c22,c23,c24,c25,c26,c27,c28,c29,c30,c31]
+
+      for c in classif[1]:
+      # for c in classifiers:
+         c.fit(X_train, Y_train)
+         list.append(copy.deepcopy(c.predict(X_test)))
+         listScore.append(copy.deepcopy(c.score(X_test, Y_test))) 
+
+      matrix = self._buildMatrix(list)
+      print(pd.DataFrame(matrix))
+      print(listScore)
+      pass
+
+   @unittest.skip("Classifier")
+   def test_matriz_diff_RandomForest(self):
+
+      # ClassifiersClass = Classifiers()
+      # classif = ClassifiersClass.getEnsembleAdaboost()
+
+      X_test, X_train, Y_train, Y_test = self._createBase(200)      
+      list = []
+      listScore = []
+
+      from sklearn.ensemble import RandomForestClassifier
+
+      c0 = RandomForestClassifier()
+      c1 = RandomForestClassifier(n_estimators=50)
+      c2 = RandomForestClassifier(n_estimators=500)
+      c3 = RandomForestClassifier(criterion='entropy')
+      c4 = RandomForestClassifier(n_estimators=50,criterion='entropy')
+      c5 = RandomForestClassifier(n_estimators=500,criterion='entropy')
+      c6 = RandomForestClassifier(min_samples_split=5)
+      c7 = RandomForestClassifier(n_estimators=50,min_samples_split=5)
+      c8 = RandomForestClassifier(n_estimators=500,min_samples_split=5)
+      c9 = RandomForestClassifier(criterion='entropy',min_samples_split=5)
+      c10 = RandomForestClassifier(n_estimators=50,criterion='entropy',min_samples_split=5)
+      c11 = RandomForestClassifier(n_estimators=500,criterion='entropy',min_samples_split=5)
+      c12 = RandomForestClassifier(bootstrap=False)
+      c13 = RandomForestClassifier(n_estimators=50,bootstrap=False)
+      c14 = RandomForestClassifier(n_estimators=500,bootstrap=False)
+      c15 = RandomForestClassifier(criterion='entropy',bootstrap=False)
+      c16 = RandomForestClassifier(n_estimators=50,criterion='entropy',bootstrap=False)
+      c17 = RandomForestClassifier(n_estimators=500,criterion='entropy',bootstrap=False)
+      c18 = RandomForestClassifier(min_samples_split=5,bootstrap=False)
+      c19 = RandomForestClassifier(n_estimators=50,min_samples_split=5,bootstrap=False)
+      c20 = RandomForestClassifier(n_estimators=500,min_samples_split=5,bootstrap=False)
+      c21 = RandomForestClassifier(criterion='entropy',min_samples_split=5,bootstrap=False)
+      c22 = RandomForestClassifier(n_estimators=50,criterion='entropy',min_samples_split=5,bootstrap=False)
+      c23 = RandomForestClassifier(n_estimators=500,criterion='entropy',min_samples_split=5,bootstrap=False)
+
+      classifiers = [c0,c1,c2,c3,c4,c5,c6,c7,c8,c9,c10,c11]
+      classifiers = classifiers + [c12,c13,c14,c15,c16,c17,c18,c19,c20,c21,c22,c23]
+      # for c in classif[1]:
+      for c in classifiers:
+         c.fit(X_train, Y_train)
+         list.append(copy.deepcopy(c.predict(X_test)))
+         listScore.append(copy.deepcopy(c.score(X_test, Y_test))) 
+
+      matrix = self._buildMatrix(list)
+      print(pd.DataFrame(matrix))
+      print(listScore)
+      pass
+
+   def test_matriz_diff_BernoulliNB(self):
+
+      ClassifiersClass = Classifiers()
+      classif = ClassifiersClass.geRidget()
+
+      X_test, X_train, Y_train, Y_test = self._createBase(200)      
+      list = []
+      listScore = []
+
+      from sklearn.naive_bayes import BernoulliNB
+
+      c0 = BernoulliNB()
+      c1 = BernoulliNB(binarize=10)
+      c2 = BernoulliNB(alpha=5)
+      c3 = BernoulliNB(alpha=0.05)
+      # c4 = RidgeClassifier(fit_intercept=False,solver='svd')
+      # c5 = RidgeClassifier(alpha=2.5,fit_intercept=False,solver='svd')
+      # c6 = RidgeClassifier(alpha=5,fit_intercept=False,solver='svd')
+      # c7 = RidgeClassifier(alpha=0.5,fit_intercept=False,solver='svd')
+      # c8 = RidgeClassifier(solver='sparse_cg')
+      # c9 = RidgeClassifier(solver='lsqr')
+      # c10 = RidgeClassifier(solver='sag')
+
+      classifiers = [c0,c1,c2,c3]
+      # classifiers = [c0,c1,c2,c3,c4,c5,c6,c7,c8,c9,c10]
+
+      # for c in classif[1]:
+      for c in classifiers:
+         c.fit(X_train, Y_train)
+         list.append(copy.deepcopy(c.predict(X_test)))
+         listScore.append(copy.deepcopy(c.score(X_test, Y_test))) 
+
+      matrix = self._buildMatrix(list)
+      print(pd.DataFrame(matrix))
+      print(listScore)
+      pass
+
+   def test_allEstimators(self):
+      from sklearn.utils import all_estimators
+
+      estimators = all_estimators(type_filter='classifier')
+      with open('classifiers.txt', 'w', newline='\n') as txtfile:
+         txtfile.writelines([c[0]+'\n' for c in estimators])
+
+   def test_allEstimators_proba(self):
+      from sklearn.utils import all_estimators
+
+      proba = []
+      estimators = all_estimators(type_filter='classifier')
+      with open('classifiers2.txt', 'w', newline='\n') as txtfile:
+         for name, class_ in estimators:
+            if hasattr(class_, 'predict_proba'):
+               proba.append(name)
+         txtfile.writelines([c+'\n' for c in proba])
+
+   def test_classif_proba(self):
+      ClassifiersClass = Classifiers()
+      names, classifiers = ClassifiersClass.getAll(ensembleFlag=True)
+      
+      temProba = []
+      nTem = []
+      for classif in classifiers:
+         if hasattr(classif, 'predict_proba'):
+            temProba.append(classif)
+         else:
+            nTem.append(classif)
+      a = 'a'
 
 if __name__ == "__main__":
    unittest.main()
