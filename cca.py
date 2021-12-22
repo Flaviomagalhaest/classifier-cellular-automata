@@ -97,7 +97,7 @@ def collectOrRelocateDeadCells(matrix, pool=[], classifiers={}, cellRealocation=
             if ('energy' in matrix[i][j]) and (matrix[i][j]['energy'] <= 0):
                 pool.append(matrix[i][j]['name'])
                 if cellRealocation:
-                    print("Classifier "+matrix[i][j]['name']+" died. "+pool[0]+" took the place.")
+                    # print("Classifier "+matrix[i][j]['name']+" died. "+pool[0]+" took the place.")
                     DataGenerate.saveDeadCell(matrix[i][j], classifiers[pool[0]], initEnergy)
                     matrix[i][j] = classifiers[pool.pop(0)]
                     matrix[i][j]['energy'] = initEnergy

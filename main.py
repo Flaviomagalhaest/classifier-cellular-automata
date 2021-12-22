@@ -1,6 +1,7 @@
 import pandas as pd
 import matplotlib.pyplot as plt
 import random, cca, copy, csv, sys
+import time
 
 from classifiers import Classifiers
 from params import Params
@@ -104,7 +105,7 @@ def trainClassif(X_train, Y_train, X_test, Y_test):
 
     ####### CLASSIFIERS ############
     ClassifiersClass = Classifiers()
-    names, classifiers = ClassifiersClass.getAll(ensembleFlag=True)
+    names, classifiers = ClassifiersClass.getAll(ensembleFlag=False)
 
     classif = {}
     for name, clf in zip(names, classifiers):
@@ -127,11 +128,11 @@ def trainClassif(X_train, Y_train, X_test, Y_test):
             continue
     
     #shuffling classifiers for the pool
-    poolClassif = list(classif.keys())
-    random.shuffle(poolClassif)
-    return poolClassif, classif
+    # poolClassif = list(classif.keys())
+    # random.shuffle(poolClassif)
+    return classif
 
-def buildMatrix(classif, poolClassif):
+def buildMatrix(classif, poolClassif, nrCells):
     #building matrix of first celullar automata
     matrix = []
     for m in range(nrCells):
@@ -152,33 +153,65 @@ def buildPool(classif):
     teste = pd.DataFrame(classif.values())
     a = 'a'
 
-for repeat in range(30):
+def listParams():
+    return [
+        [5, 1, 'config1'],
+        [5, 2, 'config2'],
+        [6, 1, 'config3'],
+        [6, 2, 'config4'],
+        [7, 1, 'config5'],
+        [7, 2, 'config6'],
+        [7, 3, 'config7'],
+        [8, 1, 'config8'],
+        [8, 2, 'config9'],
+        [8, 3, 'config10'],
+        [9, 1, 'config11'],
+        [9, 2, 'config12'],
+        [9, 3, 'config13'],
+        [9, 4, 'config14'],
+    ]
+
+for repeat in range(10):
     X_train, X_test, Y_train, Y_test, X_test_cf, Y_test_cf, X_test_ca, Y_test_ca, rangeSampleCA = dataset()
-    poolClassif, classif = trainClassif(X_train, Y_train, X_test, Y_test)
-    
-    matrix = buildMatrix(classif, poolClassif)
-    # buildPool(classif)
-    DataGenerate(Y_test_ca, classif)
-    params['TRA'] = 2
-    params['TRB'] = 4
-    # params['TRC'] = 0.05
-    # params['TRD'] = 0.025
-    params['TRC'] = 0.025
-    params['TRD'] = 0.012
+    classif_orig = trainClassif(X_train, Y_train, X_test, Y_test)
+    print("Repeticao "+str(repeat))
+    for lp in listParams():
+        start_time = time.time()
+        print("Iniciando matriz tamanho: "+str(lp[0])+" distancia: "+ str(lp[1]))
+        nrCells = lp[0]
+        distance = lp[1]
+        config = lp[2]
+        
+        # poolClassif = copy.deepcopy(poolClassif_orig)
+        classif = copy.deepcopy(classif_orig)
 
-    DataGenerate.saveStatus(matrix, classif)
-    cca.algorithmCCA(matrix, Y_test_cf, nrCells, distance, poolClassif, classif, params, t, True)
-    # Graph.printMatrixInteractiveEnergy(matrix, 'energy')
-    answersList = cca.weightedVote(matrix, rangeSampleCA)
-    score = cca.returnScore(Y_test_ca, answersList)
-    DataGenerate.file(score, answersList)
-    print("Maior score encontrado: " + str(max([classif[c]['score'] for c in classif])))
-    print("Menor score encontrado: " + str(min([classif[c]['score'] for c in classif])))
-    print(score)
+        poolClassif = list(classif.keys())
+        random.shuffle(poolClassif)
 
-    answersListInference = cca.inferenceAlgorithm(matrix, nrCells, distance, params, rangeSampleCA, t)
-    score2 = cca.returnScore(Y_test_ca, answersListInference)
-    print(score2)
-    print('Salvando resultados da '+str(repeat)+' repeticao')
-    DataGenerate.saveResult(score, score2, answersList, nrCells, matrix, t, distance, database)
+        matrix = buildMatrix(classif, poolClassif, nrCells)
+        # buildPool(classif)
+        DataGenerate(Y_test_ca, classif)
+        params['TRA'] = 2
+        params['TRB'] = 4
+        # params['TRC'] = 0.05
+        # params['TRD'] = 0.025
+        params['TRC'] = 0.025
+        params['TRD'] = 0.012
+
+        DataGenerate.saveStatus(matrix, classif)
+        cca.algorithmCCA(matrix, Y_test_cf, nrCells, distance, poolClassif, classif, params, t, True)
+        # Graph.printMatrixInteractiveEnergy(matrix, 'energy')
+        answersList = cca.weightedVote(matrix, rangeSampleCA)
+        score = cca.returnScore(Y_test_ca, answersList)
+        DataGenerate.file(score, answersList)
+        # print("Maior score encontrado: " + str(max([classif[c]['score'] for c in classif])))
+        # print("Menor score encontrado: " + str(min([classif[c]['score'] for c in classif])))
+        # print(score)
+
+        answersListInference = cca.inferenceAlgorithm(matrix, nrCells, distance, params, rangeSampleCA, t)
+        score2 = cca.returnScore(Y_test_ca, answersListInference)
+        print(score2)
+        # print('Salvando resultados da '+str(repeat)+' repeticao')
+        end_time = time.time() - start_time
+        DataGenerate.saveResult(score, score2, answersList, nrCells, matrix, t, distance, database, classif, config, end_time)
 DataGenerate.report()

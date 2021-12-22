@@ -8,6 +8,8 @@ class Params:
       obj['sample'] = 0          
       obj['liveEnergy'] = 1                     #Value of energy that cell wil lost per iteration
       obj['cellRealocation'] = True             #Flag to realocate new classifier in dead cells
+      # obj['testSamples'] = 2000            #Size of samples used in testing
+      # obj['trainSamples'] = 500            #Size of samples used in testing
       obj['testSamples'] = 2000            #Size of samples used in testing
-      obj['trainSamples'] = 500            #Size of samples used in testing
+      obj['trainSamples'] = 1000            #Size of samples used in testing
       return obj  
