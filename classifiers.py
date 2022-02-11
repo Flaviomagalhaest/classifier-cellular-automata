@@ -10,6 +10,7 @@ from sklearn.neighbors import KNeighborsClassifier
 from sklearn.svm import SVC, NuSVC, LinearSVC
 from sklearn.tree import DecisionTreeClassifier
 
+
 class Classifiers:
    def getCalibrationClassifierCV(self, names=[], classifiers=[]):
       names.append("calibrated_3_sigmoid")

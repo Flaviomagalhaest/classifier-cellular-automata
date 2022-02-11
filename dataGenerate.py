@@ -1,6 +1,7 @@
 import copy
 import csv
 import pandas as pd
+import sys
 from datetime import datetime
 
 class DataGenerate:
@@ -164,11 +165,21 @@ class DataGenerate:
       list.append(dataset)
 
       #Saving results of some classifiers
-      list.append(classif['Neural_Net']['score'])              #Neural Network
-      list.append(classif['Polynomial_SVM']['score'])          #SVM
-      list.append(classif['Decision_Tree_3']['score'])         #Decision Tree
-      list.append(classif['Nearest_Neighbors_3']['score'])     #KNN
-      list.append(classif['Adaboost_50']['score'])             #Adaboost
+      
+      def appendClassif(list, name):
+         try:
+            list.append(classif[name]['score'])
+         except:
+               print("Erro ao salvar dados do classificador: "+name+" ", sys.exc_info()[0])
+
+      for clf in ['Neural_Net', 'Polynomial_SVM', 'Decision_Tree_3', 'Nearest_Neighbors_3', 'Adaboost_50']:
+         appendClassif(list, clf)
+         
+      # list.append(classif['Neural_Net']['score'])              #Neural Network
+      # list.append(classif['Polynomial_SVM']['score'])          #SVM
+      # list.append(classif['Decision_Tree_3']['score'])         #Decision Tree
+      # list.append(classif['Nearest_Neighbors_3']['score'])     #KNN
+      # list.append(classif['Adaboost_50']['score'])             #Adaboost
 
       list.append(time)
 

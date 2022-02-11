@@ -34,7 +34,7 @@ cellRealocation         = params['cellRealocation']
 testSamples             = params['testSamples']
 trainSamples            = params['trainSamples']
 totalSamples            = testSamples + trainSamples
-database = 'jm1'
+database = 'cm1'
 ###########################
 
 def datasetSkLearn():
@@ -48,15 +48,25 @@ def datasetJM1(multipleTrain=False):
     with open('dataset/jm1.csv', newline='') as csvfile:
         spamreader = csv.reader(csvfile, delimiter=',', quotechar='|')
         jm1 = [row for nr, row in enumerate(spamreader)]
-        jm1_true = [j for j in jm1 if j[21] == 'true']
-        jm1_false = [j for j in jm1 if j[21] == 'false']
-        random.shuffle(jm1_true)
-        random.shuffle(jm1_false)
-        trainPart = int(trainSamples/2)            #Test sample divided between true answers and false answers
-        jm1_train = jm1_true[:trainPart]
-        jm1_train = jm1_train + jm1_false[:trainPart]
-        jm1_test = jm1_true[trainPart:]
-        jm1_test = jm1_test + jm1_false[trainPart:]
+        
+        #-----------#
+        
+        random.shuffle(jm1)
+        jm1_train = jm1[:trainSamples]
+        jm1_test= jm1[trainSamples:]
+
+        #------------#
+
+        # jm1_true = [j for j in jm1 if j[21] == 'true']
+        # jm1_false = [j for j in jm1 if j[21] == 'false']
+        # random.shuffle(jm1_true)
+        # random.shuffle(jm1_false)
+        # trainPart = int(trainSamples/2)            #Test sample divided between true answers and false answers
+        # jm1_train = jm1_true[:trainPart]
+        # jm1_train = jm1_train + jm1_false[:trainPart]
+        # jm1_test = jm1_true[trainPart:]
+        # jm1_test = jm1_test + jm1_false[trainPart:]
+
         random.shuffle(jm1_train)
         random.shuffle(jm1_test)
         jm1_test = jm1_test[:testSamples]
@@ -81,9 +91,111 @@ def datasetJM1(multipleTrain=False):
         X_test.append([float(j) for j in jt])
     return X_train, X_test, Y_train, Y_test
 
+def datasetCM1():
+    ####### SAMPLE #################
+    with open('dataset/cm1.csv', newline='') as csvfile:
+        spamreader = csv.reader(csvfile, delimiter=',', quotechar='|')
+        jm1 = [row for nr, row in enumerate(spamreader)]
+        jm1_true = [j for j in jm1 if j[21] == 'true']
+        jm1_false = [j for j in jm1 if j[21] == 'false']
+        random.shuffle(jm1_true)
+        random.shuffle(jm1_false)
+        trainPart = int(trainSamples/2)            #Test sample divided between true answers and false answers
+        jm1_train = jm1_true[:trainPart]
+        jm1_train = jm1_train + jm1_false[:trainPart]
+        jm1_test = jm1_true[trainPart:]
+        jm1_test = jm1_test + jm1_false[trainPart:]
+        random.shuffle(jm1_train)
+        random.shuffle(jm1_test)
+        jm1_test = jm1_test[:testSamples]
+        # jm1_train = jm1[testSamples:totalSamples]
+
+    Y_train = [j.pop(-1) for j in jm1_train]
+    Y_train = [1 if x=='true' else 0 for x in Y_train]
+    X_train = []
+    for jt in jm1_train:
+        X_train.append([float(j) for j in jt])
+
+    Y_test = [j.pop(-1) for j in jm1_test]
+    Y_test = [1 if x=='true' else 0 for x in Y_test]
+    X_test = []
+    for jt in jm1_test:
+        X_test.append([float(j) for j in jt])
+    return X_train, X_test, Y_train, Y_test
+
+def datasetPC1():
+    ####### SAMPLE #################
+    with open('dataset/pc1.csv', newline='') as csvfile:
+        spamreader = csv.reader(csvfile, delimiter=',', quotechar='|')
+        jm1 = [row for nr, row in enumerate(spamreader)]
+        jm1_true = [j for j in jm1 if j[21] == 'true']
+        jm1_false = [j for j in jm1 if j[21] == 'false']
+        random.shuffle(jm1_true)
+        random.shuffle(jm1_false)
+        trainPart = int(trainSamples/2)            #Test sample divided between true answers and false answers
+        jm1_train = jm1_true[:trainPart]
+        jm1_train = jm1_train + jm1_false[:trainPart]
+        jm1_test = jm1_true[trainPart:]
+        jm1_test = jm1_test + jm1_false[trainPart:]
+        random.shuffle(jm1_train)
+        random.shuffle(jm1_test)
+        jm1_test = jm1_test[:testSamples]
+        # jm1_train = jm1[testSamples:totalSamples]
+
+    Y_train = [j.pop(-1) for j in jm1_train]
+    Y_train = [1 if x=='true' else 0 for x in Y_train]
+    X_train = []
+    for jt in jm1_train:
+        X_train.append([float(j) for j in jt])
+
+    Y_test = [j.pop(-1) for j in jm1_test]
+    Y_test = [1 if x=='true' else 0 for x in Y_test]
+    X_test = []
+    for jt in jm1_test:
+        X_test.append([float(j) for j in jt])
+    return X_train, X_test, Y_train, Y_test
+
+def datasetKC1():
+    ####### SAMPLE #################
+    with open('dataset/kc1.csv', newline='') as csvfile:
+        spamreader = csv.reader(csvfile, delimiter=',', quotechar='|')
+        jm1 = [row for nr, row in enumerate(spamreader)]
+        jm1_true = [j for j in jm1 if j[21] == 'true']
+        jm1_false = [j for j in jm1 if j[21] == 'false']
+        random.shuffle(jm1_true)
+        random.shuffle(jm1_false)
+        trainPart = int(trainSamples/2)            #Test sample divided between true answers and false answers
+        jm1_train = jm1_true[:trainPart]
+        jm1_train = jm1_train + jm1_false[:trainPart]
+        jm1_test = jm1_true[trainPart:]
+        jm1_test = jm1_test + jm1_false[trainPart:]
+        random.shuffle(jm1_train)
+        random.shuffle(jm1_test)
+        jm1_test = jm1_test[:testSamples]
+        # jm1_train = jm1[testSamples:totalSamples]
+
+    Y_train = [j.pop(-1) for j in jm1_train]
+    Y_train = [1 if x=='true' else 0 for x in Y_train]
+    X_train = []
+    for jt in jm1_train:
+        X_train.append([float(j) for j in jt])
+
+    Y_test = [j.pop(-1) for j in jm1_test]
+    Y_test = [1 if x=='true' else 0 for x in Y_test]
+    X_test = []
+    for jt in jm1_test:
+        X_test.append([float(j) for j in jt])
+    return X_train, X_test, Y_train, Y_test
+
 def dataset():
     if database == 'jm1':
         X_train, X_test, Y_train, Y_test = datasetJM1(False)
+    elif database == 'cm1':
+        X_train, X_test, Y_train, Y_test = datasetCM1()
+    elif database == 'pc1':
+        X_train, X_test, Y_train, Y_test = datasetPC1()
+    elif database == 'kc1':
+        X_train, X_test, Y_train, Y_test = datasetKC1()
     else:
         X_train, X_test, Y_train, Y_test = datasetSkLearn()    
 
@@ -105,7 +217,7 @@ def trainClassif(X_train, Y_train, X_test, Y_test):
 
     ####### CLASSIFIERS ############
     ClassifiersClass = Classifiers()
-    names, classifiers = ClassifiersClass.getAll(ensembleFlag=False)
+    names, classifiers = ClassifiersClass.getAll(ensembleFlag=True)
 
     classif = {}
     for name, clf in zip(names, classifiers):
@@ -156,19 +268,19 @@ def buildPool(classif):
 def listParams():
     return [
         [5, 1, 'config1'],
-        [5, 2, 'config2'],
+        # [5, 2, 'config2'],
         [6, 1, 'config3'],
-        [6, 2, 'config4'],
+        # [6, 2, 'config4'],
         [7, 1, 'config5'],
-        [7, 2, 'config6'],
-        [7, 3, 'config7'],
+        # [7, 2, 'config6'],
+        # [7, 3, 'config7'],
         [8, 1, 'config8'],
-        [8, 2, 'config9'],
-        [8, 3, 'config10'],
-        [9, 1, 'config11'],
-        [9, 2, 'config12'],
-        [9, 3, 'config13'],
-        [9, 4, 'config14'],
+        # [8, 2, 'config9'],
+        # [8, 3, 'config10'],
+        # [9, 1, 'config11'],
+        # [9, 2, 'config12'],
+        # [9, 3, 'config13'],
+        # [9, 4, 'config14'],
     ]
 
 for repeat in range(10):

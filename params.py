@@ -10,6 +10,6 @@ class Params:
       obj['cellRealocation'] = True             #Flag to realocate new classifier in dead cells
       # obj['testSamples'] = 2000            #Size of samples used in testing
       # obj['trainSamples'] = 500            #Size of samples used in testing
-      obj['testSamples'] = 2000            #Size of samples used in testing
-      obj['trainSamples'] = 1000            #Size of samples used in testing
+      obj['testSamples'] = 300            #Size of samples used in testing
+      obj['trainSamples'] = 150            #Size of samples used in testing
       return obj  
