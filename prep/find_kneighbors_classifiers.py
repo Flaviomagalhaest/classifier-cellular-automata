@@ -55,4 +55,4 @@ counter = Counter(result)
 print(counter)
 result_most_common = [c for c in counter if counter[c] > 1]
 filepath = Path("prep/data/knn.csv")
-pd.DataFrame(result_most_common).to_csv(filepath)
+pd.DataFrame(result_most_common).to_csv(filepath, index=False)
