@@ -2,12 +2,12 @@ import csv
 import re
 from typing import List
 
-from src.classifiers import Classifiers
+from src.classifiers import Classifier
 
 
 def _get_neighbors(
-    list_classifiers: List[Classifiers] = [],
-) -> List[Classifiers]:
+    list_classifiers: List[Classifier] = [],
+) -> List[Classifier]:
 
     from sklearn.neighbors import KNeighborsClassifier
 
@@ -29,7 +29,7 @@ def _get_neighbors(
                 )
 
                 list_classifiers.append(
-                    Classifiers(
+                    Classifier(
                         "KNeighborsClassifier",
                         classifier,
                     )
@@ -40,8 +40,8 @@ def _get_neighbors(
 
 
 def _get_discriminant_analysis(
-    list_classifiers: List[Classifiers] = [],
-) -> List[Classifiers]:
+    list_classifiers: List[Classifier] = [],
+) -> List[Classifier]:
     from sklearn.discriminant_analysis import (
         LinearDiscriminantAnalysis,
         QuadraticDiscriminantAnalysis,
@@ -51,7 +51,7 @@ def _get_discriminant_analysis(
         classifier = LinearDiscriminantAnalysis()
 
         list_classifiers.append(
-            Classifiers(
+            Classifier(
                 "LinearDiscriminantAnalysis",
                 classifier,
             )
@@ -61,7 +61,7 @@ def _get_discriminant_analysis(
         classifier = QuadraticDiscriminantAnalysis()
 
         list_classifiers.append(
-            Classifiers(
+            Classifier(
                 "QuadraticDiscriminantAnalysis",
                 classifier,
             )
@@ -73,8 +73,8 @@ def _get_discriminant_analysis(
 
 
 def _gaussian_process(
-    list_classifiers: List[Classifiers] = [],
-) -> List[Classifiers]:
+    list_classifiers: List[Classifier] = [],
+) -> List[Classifier]:
     from sklearn.gaussian_process import GaussianProcessClassifier
     from sklearn.gaussian_process.kernels import RBF
 
@@ -82,7 +82,7 @@ def _gaussian_process(
         classifier = GaussianProcessClassifier(1.0 * RBF(1.0))
 
         list_classifiers.append(
-            Classifiers(
+            Classifier(
                 "GaussianProcessClassifier",
                 classifier,
             )
@@ -93,8 +93,8 @@ def _gaussian_process(
 
 
 def _linear_model(
-    list_classifiers: List[Classifiers] = [],
-) -> List[Classifiers]:
+    list_classifiers: List[Classifier] = [],
+) -> List[Classifier]:
     from sklearn.linear_model import (
         LogisticRegression,
         PassiveAggressiveClassifier,
@@ -137,7 +137,7 @@ def _linear_model(
 
         for logistic_regression in list_logistic_regression:
             list_classifiers.append(
-                Classifiers(
+                Classifier(
                     "LogisticRegression",
                     logistic_regression,
                 )
@@ -157,7 +157,7 @@ def _linear_model(
 
         for sgd_classifier in list_sgd_classifier:
             list_classifiers.append(
-                Classifiers(
+                Classifier(
                     "SGDClassifier",
                     sgd_classifier,
                 )
@@ -180,7 +180,7 @@ def _linear_model(
 
         for ridge_classifier in list_ridge_classifier:
             list_classifiers.append(
-                Classifiers(
+                Classifier(
                     "RidgeClassifier",
                     ridge_classifier,
                 )
@@ -252,7 +252,7 @@ def _linear_model(
 
         for passive_aggressive_classif in list_passive_aggressive_classifier:
             list_classifiers.append(
-                Classifiers(
+                Classifier(
                     "PassiveAggressiveClassifier",
                     passive_aggressive_classif,
                 )
@@ -265,8 +265,8 @@ def _linear_model(
     return list_classifiers
 
 
-def get_all_classifiers() -> List[Classifiers]:
-    list_classifiers: List[Classifiers] = []
+def get_all_classifiers() -> List[Classifier]:
+    list_classifiers: List[Classifier] = []
 
     _get_neighbors(list_classifiers)
     _get_discriminant_analysis(list_classifiers)
