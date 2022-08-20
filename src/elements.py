@@ -148,7 +148,7 @@ class Matrix:
         pool: Pool,
         init_enery: float,
     ) -> None:
-        self.matrix: List[List[Cell]] = [[]]
+        self.matrix: List[List[Cell]] = []
         self._init_matrix(
             size=size,
             pool=pool,

@@ -2,10 +2,10 @@ import yaml
 
 from app.pool_classifiers import get_all_classifiers
 from src.dataset import Dataset
-from src.elements import Pool
+from src.elements import Matrix, Pool
 from src.helpers import dict_results_to_dataframe
 
-with open("cca_config.yaml", "r") as f:
+with open("src/cca_config.yaml", "r") as f:
     config = yaml.load(f, Loader=yaml.FullLoader)
 
 all_classifiers = get_all_classifiers()
@@ -21,4 +21,9 @@ results = pool.get_results()
 results_df = dict_results_to_dataframe(results)
 
 pool.shuffle_classifiers()
+matrix = Matrix(
+    size=config["matrix_size"],
+    pool=pool,
+    init_enery=config["init_energy"],
+)
 ...
