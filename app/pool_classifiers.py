@@ -2,7 +2,7 @@ import csv
 import re
 from typing import List
 
-from src.classifiers import Classifier
+from src.elements import Classifier
 
 
 def _get_neighbors(
