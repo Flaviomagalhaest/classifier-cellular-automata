@@ -1,5 +1,5 @@
 import random
-from typing import Dict, List
+from typing import Dict, List, Tuple
 
 from sklearn.base import BaseEstimator
 from sklearn.metrics import (
@@ -96,6 +96,9 @@ class Pool:
     def __init__(self, classifiers: List[Classifier]) -> None:
         self.classifiers = classifiers
 
+    def get_classifiers(self) -> List[Classifier]:
+        return self.classifiers
+
     def fit_all(
         self,
         features_values: List[List[float]],
@@ -136,9 +139,20 @@ class Pool:
 
 
 class Cell:
-    def __init__(self, classifier: Classifier, init_energy: float) -> None:
-        self.classifier = classifier
-        self.energy = init_energy
+    def __init__(
+        self,
+        classifier: Classifier,
+        init_energy: float,
+        localization: Tuple[int, int],
+        neighbors: List[Tuple[int, int]],
+    ) -> None:
+        self.classifier: Classifier = classifier
+        self.energy: float = init_energy
+        self.localization: Tuple[int, int] = localization
+        self.neighbors_list: List[Tuple[int, int]] = neighbors
+
+    def get_neighbors(self) -> List[Tuple[int, int]]:
+        return self.neighbors_list
 
 
 class Matrix:
@@ -147,24 +161,54 @@ class Matrix:
         size: int,
         pool: Pool,
         init_enery: float,
+        distance_neighborhood: int,
     ) -> None:
         self.matrix: List[List[Cell]] = []
+        self.size = size
         self._init_matrix(
-            size=size,
             pool=pool,
             init_enery=init_enery,
+            distance=distance_neighborhood,
+            size=size,
         )
 
+    def get(self) -> List[List[Cell]]:
+        return self.matrix
+
+    def get_size(self) -> int:
+        return self.size
+
     def _init_matrix(
-        self,
-        size: int,
-        pool: Pool,
-        init_enery: float,
+        self, pool: Pool, init_enery: float, distance: int, size: int
     ) -> None:
-        for i in range(size):
+        for x in range(self.size):
             line: List[Cell] = []
-            for y in range(size):
-                line.append(
-                    Cell(classifier=pool.pop(), init_energy=init_enery),
+            for y in range(self.size):
+                neighbors_list = self._gen_neighborhood(
+                    cell_local=(x, y), distance=distance, size=size
                 )
+                c = Cell(
+                    classifier=pool.pop(),
+                    init_energy=init_enery,
+                    localization=(x, y),
+                    neighbors=neighbors_list,
+                )
+                line.append(c)
             self.matrix.append(line)
+
+    def _gen_neighborhood(
+        self, cell_local: Tuple[int, int], distance: int, size: int
+    ) -> List[Tuple[int, int]]:
+        neighbors_list: List[Tuple[int, int]] = []
+        for i in range(cell_local[0] - distance, cell_local[0] + distance + 1):
+            if i < 0 or i >= size:
+                continue
+            for j in range(
+                cell_local[1] - distance, cell_local[1] + distance + 1
+            ):
+                if j < 0 or j >= size:
+                    continue
+                elif i == cell_local[0] and j == cell_local[1]:
+                    continue
+                neighbors_list.append((i, j))
+        return neighbors_list
