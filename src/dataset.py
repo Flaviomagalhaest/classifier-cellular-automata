@@ -15,32 +15,43 @@ class Dataset:
     def __init__(
         self,
         name: DATASET,
-        train_amount: int,
+        train_clf_amount: int,
+        train_cca_amount: int,
         test_amount: int,
     ) -> None:
+        first_gap = train_clf_amount
+        second_gap = first_gap + train_cca_amount
+        third_gap = second_gap + test_amount
         filepath = Path("src/datasets/" + name + ".csv")
         with open(filepath, newline="") as csvfile:
             spamreader = csv.reader(csvfile, delimiter=",", quotechar="|")
             samples = [row for nr, row in enumerate(spamreader)]
             random.shuffle(samples)
-            train_samples = samples[:train_amount]
-            test_samples = samples[train_amount : train_amount + test_amount]
+            train_clf_samples = samples[:first_gap]
+            train_cca_samples = samples[first_gap:second_gap]
+            test_samples = samples[second_gap:third_gap]
 
-            self.train_features, self.train_result = self._data_prep(
-                train_samples,
+            self.train_clf_features, self.train_clf_result = self._data_prep(
+                train_clf_samples,
+            )
+            self.train_cca_features, self.train_cca_result = self._data_prep(
+                train_cca_samples,
             )
             self.test_features, self.test_result = self._data_prep(
                 test_samples,
             )
 
-    def get_train_samples(self) -> Tuple[List[List[float]], List[int]]:
-        return self.train_features, self.train_result
+    def get_train_clf_samples(self) -> Tuple[List[List[float]], List[int]]:
+        return self.train_clf_features, self.train_clf_result
+
+    def get_train_cca_samples(self) -> Tuple[List[List[float]], List[int]]:
+        return self.train_cca_features, self.train_cca_result
 
     def get_test_samples(self) -> Tuple[List[List[float]], List[int]]:
         return self.test_features, self.test_result
 
     def _data_prep(
-        self, samples: List[str]
+        self, samples: List[List[str]]
     ) -> Tuple[List[List[float]], List[int]]:
         result: List[int]
         features: List[List[float]]
