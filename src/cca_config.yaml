@@ -1,2 +1,4 @@
-init_energy: 100
-matrix_size: 5
+init_energy: 5000
+matrix_size: 8
+distance: 3
+interactions: 10
