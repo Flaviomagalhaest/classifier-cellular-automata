@@ -1,3 +1,4 @@
+import copy
 import random
 from typing import Dict, List, Tuple
 
@@ -8,6 +9,8 @@ from sklearn.metrics import (
     precision_score,
     recall_score,
 )
+
+from src.helpers import distance_two_points
 
 ResultsMetrics = Dict[str, str | List[int] | float]
 
@@ -137,6 +140,9 @@ class Pool:
     def pop(self) -> Classifier:
         return self.classifiers.pop(0)
 
+    def append(self, classifier: Classifier):
+        self.classifiers.append(classifier)
+
 
 class Cell:
     def __init__(
@@ -144,15 +150,39 @@ class Cell:
         classifier: Classifier,
         init_energy: float,
         localization: Tuple[int, int],
-        neighbors: List[Tuple[int, int]],
+        neighbors: List[Dict[str, Tuple[int, int] | float]],
     ) -> None:
         self.classifier: Classifier = classifier
         self.energy: float = init_energy
         self.localization: Tuple[int, int] = localization
-        self.neighbors_list: List[Tuple[int, int]] = neighbors
+        self.neighbors_list: List[
+            Dict[str, Tuple[int, int] | float]
+        ] = neighbors
 
-    def get_neighbors(self) -> List[Tuple[int, int]]:
+    def get_neighbors(self) -> List[Dict[str, Tuple[int, int] | float]]:
         return self.neighbors_list
+
+    def get_predicion(self) -> int | None:
+        return self.prediction
+
+    def get_local(self) -> Tuple[int, int]:
+        return self.localization
+
+    def get_energy(self) -> float:
+        return self.energy
+
+    def reset_classifier(self, pool: Pool, init_energy: int) -> None:
+        print("O classificador " + self.classifier.name + " morreu.")
+        pool.append(copy.deepcopy(self.classifier))
+        self.classifier = pool.pop()
+        self.energy = init_energy
+
+    def add_energy(self, energy: float) -> None:
+        self.energy += energy
+
+    def predict(self, sample_features: List[float]) -> int:
+        self.prediction = self.classifier.predict([sample_features])[0]
+        return self.prediction
 
 
 class Matrix:
@@ -164,13 +194,9 @@ class Matrix:
         distance_neighborhood: int,
     ) -> None:
         self.matrix: List[List[Cell]] = []
-        self.size = size
-        self._init_matrix(
-            pool=pool,
-            init_enery=init_enery,
-            distance=distance_neighborhood,
-            size=size,
-        )
+        self.size: int = size
+        self.distance: int = distance_neighborhood
+        self._init_matrix(pool=pool, init_enery=init_enery)
 
     def get(self) -> List[List[Cell]]:
         return self.matrix
@@ -178,15 +204,34 @@ class Matrix:
     def get_size(self) -> int:
         return self.size
 
-    def _init_matrix(
-        self, pool: Pool, init_enery: float, distance: int, size: int
-    ) -> None:
+    def predict_all_cells(self, sample_features: List[float]) -> None:
+        for line_matrix in self.matrix:
+            for cell in line_matrix:
+                cell.predict(sample_features)
+
+    def predict_matrix(self, sample_features: List[List[float]]) -> List[int]:
+        matrix_class: List[int] = []
+        for sample_feature in sample_features:
+            predict_defect_weight: float = 0
+            predict_no_defect_weight: float = 0
+            for line in self.matrix:
+                for cell in line:
+                    answer = cell.predict(sample_feature)
+                    if answer == 1:
+                        predict_defect_weight += cell.get_energy()
+                    if answer == 0:
+                        predict_no_defect_weight += cell.get_energy()
+            if predict_defect_weight >= predict_no_defect_weight:
+                matrix_class.append(1)
+            if predict_defect_weight < predict_no_defect_weight:
+                matrix_class.append(0)
+        return matrix_class
+
+    def _init_matrix(self, pool: Pool, init_enery: float) -> None:
         for x in range(self.size):
             line: List[Cell] = []
             for y in range(self.size):
-                neighbors_list = self._gen_neighborhood(
-                    cell_local=(x, y), distance=distance, size=size
-                )
+                neighbors_list = self._gen_neighborhood(cell_local=(x, y))
                 c = Cell(
                     classifier=pool.pop(),
                     init_energy=init_enery,
@@ -197,18 +242,21 @@ class Matrix:
             self.matrix.append(line)
 
     def _gen_neighborhood(
-        self, cell_local: Tuple[int, int], distance: int, size: int
-    ) -> List[Tuple[int, int]]:
-        neighbors_list: List[Tuple[int, int]] = []
-        for i in range(cell_local[0] - distance, cell_local[0] + distance + 1):
-            if i < 0 or i >= size:
+        self, cell_local: Tuple[int, int]
+    ) -> List[Dict[str, Tuple[int, int] | float]]:
+        d = self.distance
+        neighbors_list: List[Dict[str, Tuple[int, int] | float]] = []
+        for i in range(cell_local[0] - d, cell_local[0] + d + 1):
+            if i < 0 or i >= self.size:
                 continue
-            for j in range(
-                cell_local[1] - distance, cell_local[1] + distance + 1
-            ):
-                if j < 0 or j >= size:
+            for j in range(cell_local[1] - d, cell_local[1] + d + 1):
+                if j < 0 or j >= self.size:
                     continue
                 elif i == cell_local[0] and j == cell_local[1]:
                     continue
-                neighbors_list.append((i, j))
+                neighbor = {
+                    "local": (i, j),
+                    "distance": distance_two_points((i, j), cell_local),
+                }
+                neighbors_list.append(neighbor)
         return neighbors_list

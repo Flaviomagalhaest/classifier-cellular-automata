@@ -1,6 +1,7 @@
 import copy
 
 from src.elements import Classifier, Matrix, Pool
+from src.helpers import distance_two_points
 
 
 def test_creating_matrix_3x3_object_getting_classifier_from_pool():
@@ -70,7 +71,13 @@ def test_matrix_gen_neighborhood_correctly():
         for i in list_possibilities:
             for j in list_possibilities:
                 if not (x_cell == i and y_cell == j):
-                    resp_tuple.append((i, j))
+                    neighbor = {
+                        "local": (i, j),
+                        "distance": distance_two_points(
+                            (i, j), (x_cell, y_cell)
+                        ),
+                    }
+                    resp_tuple.append(neighbor)
         return resp_tuple
 
     pool = copy.deepcopy(pool_orig)

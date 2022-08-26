@@ -5,9 +5,8 @@ from typing import Dict, List, Literal, Tuple
 
 from pandas import DataFrame
 
-from src.elements import ResultsMetrics
-
 PREDICTIONS = Literal[0, 1]
+ResultsMetrics = Dict[str, str | List[int] | float]
 
 
 def compare_two_predicts(l1, l2):
