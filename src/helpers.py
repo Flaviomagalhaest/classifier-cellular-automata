@@ -1,6 +1,7 @@
 import copy
+import math
 from collections import Counter
-from typing import Dict, List, Literal
+from typing import Dict, List, Literal, Tuple
 
 from pandas import DataFrame
 
@@ -29,3 +30,11 @@ def dict_results_to_dataframe(results: List[ResultsMetrics]) -> DataFrame:
     results_without_predictions = list(map(remove_predicionts, new_results))
     df = DataFrame.from_dict(results_without_predictions)  # type: ignore
     return df.sort_values("f1", ascending=False)
+
+
+def distance_two_points(
+    cell_a: Tuple[int, int], cell_b: Tuple[int, int]
+) -> float:
+    distance_one = (cell_a[0] - cell_b[0]) ** 2
+    distance_two = (cell_a[1] - cell_b[1]) ** 2
+    return round(math.sqrt(distance_one + distance_two), 4)
