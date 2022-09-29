@@ -265,6 +265,69 @@ def _linear_model(
     return list_classifiers
 
 
+def _naive_bayes(
+    list_classifiers: List[Classifier] = [],
+) -> List[Classifier]:
+    from sklearn.naive_bayes import GaussianNB
+
+    def _gaussian_nb() -> None:
+        list_gaussian_nb = [GaussianNB()]
+
+        for gaussian_nb in list_gaussian_nb:
+            list_classifiers.append(
+                Classifier(
+                    "GaussianNaiveBayes",
+                    gaussian_nb,
+                )
+            )
+
+    _gaussian_nb()
+    return list_classifiers
+
+
+def _neural_network(
+    list_classifiers: List[Classifier] = [],
+) -> List[Classifier]:
+    from sklearn.neural_network import MLPClassifier
+
+    def _mlpc() -> None:
+        list_mlpc = [MLPClassifier(alpha=1, max_iter=1000)]
+
+        for mlpc in list_mlpc:
+            list_classifiers.append(
+                Classifier(
+                    "Neural_network_mlpc",
+                    mlpc,
+                )
+            )
+
+    _mlpc()
+    return list_classifiers
+
+
+def _tree(
+    list_classifiers: List[Classifier] = [],
+) -> List[Classifier]:
+    from sklearn.tree import DecisionTreeClassifier
+
+    def _decision_tree() -> None:
+        list_decision_tree = [
+            DecisionTreeClassifier(max_depth=3),
+            DecisionTreeClassifier(max_depth=5),
+        ]
+
+        for decision_tree in list_decision_tree:
+            list_classifiers.append(
+                Classifier(
+                    "Decision_Tree",
+                    decision_tree,
+                )
+            )
+
+    _decision_tree()
+    return list_classifiers
+
+
 def get_all_classifiers() -> List[Classifier]:
     list_classifiers: List[Classifier] = []
 
@@ -272,4 +335,7 @@ def get_all_classifiers() -> List[Classifier]:
     _get_discriminant_analysis(list_classifiers)
     _gaussian_process(list_classifiers)
     _linear_model(list_classifiers)
+    _naive_bayes(list_classifiers)
+    _neural_network(list_classifiers)
+    _tree(list_classifiers)
     return list_classifiers

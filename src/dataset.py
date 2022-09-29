@@ -9,7 +9,10 @@ class Dataset:
         "cm1",
         "jm1",
         "kc1",
+        "kc2",
         "pc1",
+        "pc3",
+        "pc4",
     ]
 
     def __init__(
@@ -19,6 +22,7 @@ class Dataset:
         train_cca_amount: int,
         test_amount: int,
     ) -> None:
+        self.name: str = name
         first_gap = train_clf_amount
         second_gap = first_gap + train_cca_amount
         third_gap = second_gap + test_amount
@@ -56,7 +60,18 @@ class Dataset:
         result: List[int]
         features: List[List[float]]
 
-        result = list(map(lambda x: 1 if x.pop(-1) == "true" else 0, samples))
+        if self.name in ["pc3", "pc4"]:
+            result = list(
+                map(lambda x: 1 if x.pop(-1) == "TRUE" else 0, samples)
+            )
+        elif self.name == "kc2":
+            result = list(
+                map(lambda x: 1 if x.pop(-1) == "yes" else 0, samples)
+            )
+        else:
+            result = list(
+                map(lambda x: 1 if x.pop(-1) == "true" else 0, samples)
+            )
         features = list(map(lambda y: [float(s) for s in y], samples))
 
         return features, result
