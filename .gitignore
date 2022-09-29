@@ -1,7 +1,7 @@
 __pycache__/
 .vscode/
 .venv/
-*.csv
+file/
 *.jpg
 *.txt
 *.xlsx
