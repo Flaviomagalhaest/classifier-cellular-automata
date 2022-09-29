@@ -158,6 +158,7 @@ class Cell:
         self.neighbors_list: List[
             Dict[str, Tuple[int, int] | float]
         ] = neighbors
+        self.prediction: int
 
     def get_neighbors(self) -> List[Dict[str, Tuple[int, int] | float]]:
         return self.neighbors_list
@@ -170,6 +171,9 @@ class Cell:
 
     def get_energy(self) -> float:
         return self.energy
+
+    def get_classifier(self) -> Classifier:
+        return self.classifier
 
     def reset_classifier(self, pool: Pool, init_energy: int) -> None:
         print("O classificador " + self.classifier.name + " morreu.")
@@ -226,6 +230,13 @@ class Matrix:
             if predict_defect_weight < predict_no_defect_weight:
                 matrix_class.append(0)
         return matrix_class
+
+    def get_results(self) -> List[ResultsMetrics]:
+        results: List[ResultsMetrics] = []
+        for line in self.matrix:
+            for cell in line:
+                results.append(cell.get_classifier().get_results())
+        return results
 
     def _init_matrix(self, pool: Pool, init_enery: float) -> None:
         for x in range(self.size):

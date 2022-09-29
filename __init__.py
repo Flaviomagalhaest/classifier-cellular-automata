@@ -1,4 +1,5 @@
 import yaml
+from sklearn.metrics import classification_report
 
 from app.pool_classifiers import get_all_classifiers
 from src.cca import learning_algorithm
@@ -10,7 +11,12 @@ with open("src/cca_config.yaml", "r") as f:
     config = yaml.load(f, Loader=yaml.FullLoader)
 
 all_classifiers = get_all_classifiers()
-dataset = Dataset("jm1", 1000, 1000, 1000)
+dataset = Dataset(
+    name="pc1",
+    train_clf_amount=300,
+    train_cca_amount=300,
+    test_amount=400,
+)
 x_train_clf, y_train_clf = dataset.get_train_clf_samples()
 x_train_cca, y_train_cca = dataset.get_train_cca_samples()
 x_test, y_test = dataset.get_test_samples()
@@ -40,4 +46,6 @@ learning_algorithm(
     init_energy=config["init_energy"],
 )
 matrix_class = matrix.predict_matrix(x_test)
+results_df_matrix = matrix.get_results()
+print(classification_report(y_test, matrix_class, digits=3))
 ...
