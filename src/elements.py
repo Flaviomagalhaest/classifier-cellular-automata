@@ -1,6 +1,6 @@
 import copy
 import random
-from typing import Dict, List, Tuple
+from typing import Dict, List, Literal, Tuple
 
 from sklearn.base import BaseEstimator
 from sklearn.metrics import (
@@ -13,6 +13,15 @@ from sklearn.metrics import (
 from src.helpers import distance_two_points
 
 ResultsMetrics = Dict[str, str | List[int] | float]
+
+METRICS = Literal[
+    "prediction",
+    "score",
+    "accuracy",
+    "recall",
+    "precision",
+    "f1",
+]
 
 
 class Classifier:
@@ -48,7 +57,7 @@ class Classifier:
         self.train_classes = classes_values
         self.clf.fit(features_values, classes_values)  # type: ignore
         self.classifier_trained = True
-        print("Clasificador " + self.name + " treinado.")
+        # print("Clasificador " + self.name + " treinado.")
 
     def test(
         self,
@@ -76,17 +85,23 @@ class Classifier:
             self.f1 = f1_score(classes_values, self.prediction)
             return self.get_results()
 
-    def get_results(
-        self,
-    ) -> ResultsMetrics:
-        return {
-            "prediction": self.prediction,
-            "score": self.score,
-            "accuracy": self.accuracy,
-            "recall": self.recall,
-            "precision": self.precision,
-            "f1": self.f1,
-        }
+    def get_results(self, metrics: List[METRICS] = []) -> ResultsMetrics:
+        """
+        This function takes in a list of metric attributes for classifiers and
+        returns a dictionary with the metric name and its corresponding value.
+        If no metrics are provided, the function returns all available metrics.
+        """
+        if len(metrics) <= 0:
+            return {
+                "prediction": self.prediction,
+                "score": self.score,
+                "accuracy": self.accuracy,
+                "recall": self.recall,
+                "precision": self.precision,
+                "f1": self.f1,
+            }
+        else:
+            return {metric: getattr(self, metric) for metric in metrics}
 
     def predict(
         self,
@@ -137,6 +152,23 @@ class Pool:
         random.shuffle(self.classifiers)
         return self.classifiers
 
+    def order_by_f1(self):
+        """
+        Method to order pool of classifiers by the f1 value of each
+        classifier.
+        """
+        self.classifiers = sorted(
+            self.classifiers, key=lambda x: x.f1, reverse=True
+        )
+
+    def filter_by_f1(self, f1_value: float):
+        """
+        Method to filter pool of classifiers by the f1 value
+        """
+        self.classifiers = list(
+            filter(lambda x: x.f1 > f1_value, self.classifiers)
+        )
+
     def pop(self) -> Classifier:
         return self.classifiers.pop(0)
 
@@ -153,7 +185,8 @@ class Cell:
         neighbors: List[Dict[str, Tuple[int, int] | float]],
     ) -> None:
         self.classifier: Classifier = classifier
-        self.energy: float = init_energy
+        self.energy: Dict[int, float] = {0: init_energy, 1: init_energy}
+        # self.energy: float = init_energy
         self.localization: Tuple[int, int] = localization
         self.neighbors_list: List[
             Dict[str, Tuple[int, int] | float]
@@ -169,24 +202,27 @@ class Cell:
     def get_local(self) -> Tuple[int, int]:
         return self.localization
 
-    def get_energy(self) -> float:
+    def get_energy(self) -> Dict[int, float]:
         return self.energy
 
     def get_classifier(self) -> Classifier:
         return self.classifier
 
     def reset_classifier(self, pool: Pool, init_energy: int) -> None:
-        print("O classificador " + self.classifier.name + " morreu.")
+        # print("O classificador " + self.classifier.name + " morreu.")
         pool.append(copy.deepcopy(self.classifier))
         self.classifier = pool.pop()
-        self.energy = init_energy
+        self._reset_energy(init_energy)
 
-    def add_energy(self, energy: float) -> None:
-        self.energy += energy
+    def add_energy(self, index_class: int, energy: float) -> None:
+        self.energy[index_class] += energy
 
     def predict(self, sample_features: List[float]) -> int:
         self.prediction = self.classifier.predict([sample_features])[0]
         return self.prediction
+
+    def _reset_energy(self, init_energy: float) -> None:
+        self.energy = {0: init_energy, 1: init_energy}
 
 
 class Matrix:
@@ -222,20 +258,26 @@ class Matrix:
                 for cell in line:
                     answer = cell.predict(sample_feature)
                     if answer == 1:
-                        predict_defect_weight += cell.get_energy()
-                    if answer == 0:
-                        predict_no_defect_weight += cell.get_energy()
+                        predict_defect_weight += cell.get_energy()[answer]
+                    elif answer == 0:
+                        predict_no_defect_weight += cell.get_energy()[answer]
             if predict_defect_weight >= predict_no_defect_weight:
                 matrix_class.append(1)
-            if predict_defect_weight < predict_no_defect_weight:
+            elif predict_defect_weight < predict_no_defect_weight:
                 matrix_class.append(0)
         return matrix_class
 
-    def get_results(self) -> List[ResultsMetrics]:
+    def get_results(self, metrics: List[METRICS] = []) -> List[ResultsMetrics]:
+        """
+        This function takes in a list of metric attributes for classifiers from
+        matrix and returns a dictionary with the metric name and its
+        corresponding value. If no metrics are provided, the function returns
+        all available metrics of classifiers.
+        """
         results: List[ResultsMetrics] = []
         for line in self.matrix:
             for cell in line:
-                results.append(cell.get_classifier().get_results())
+                results.append(cell.get_classifier().get_results(metrics))
         return results
 
     def _init_matrix(self, pool: Pool, init_enery: float) -> None:

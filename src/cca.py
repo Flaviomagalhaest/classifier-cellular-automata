@@ -38,7 +38,7 @@ def _calc_energy(
     score_defect: float,
     score_no_defect: float,
     class_correct: int,
-):
+) -> float:
     energy = 0.0
     # find energy gain
     if cell_predict == Module.with_defect.value:
@@ -64,6 +64,7 @@ def learning_algorithm(
 ) -> Matrix:
     for interaction in range(interactions):
         print("Interacao: " + str(interaction))
+        nr_dead_cells = 0
         # iterate index of samples
         for index in range(len(sample_features)):
             # iterate all cells in matrix
@@ -84,11 +85,14 @@ def learning_algorithm(
                     )
 
                     # update energy
-                    cell.add_energy(energy)
+                    cell.add_energy(sample_class[index], energy)
 
                     # replace dead cell
-                    if cell.get_energy() <= 0:
+                    cells_energy = cell.get_energy()
+                    if cells_energy[0] <= 0 or cells_energy[1] <= 0:
+                        nr_dead_cells += 1
                         cell.reset_classifier(
                             pool=pool, init_energy=init_energy
                         )
+        print("Total de mortes: ", nr_dead_cells)
     return matrix
