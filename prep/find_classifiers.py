@@ -9,7 +9,7 @@ def create_base(
 ) -> Tuple[List[List[float]], List[List[float]], List[int], List[int]]:
     X_test = []
     X_train = []
-    with open("dataset/jm1.csv", newline="") as csvfile:
+    with open("src/datasets/jm1.csv", newline="") as csvfile:
         spamreader = csv.reader(csvfile, delimiter=",", quotechar="|")
         jm1 = [row for nr, row in enumerate(spamreader)]
         jm1_true = [j for j in jm1 if j[21] == "true"]
@@ -72,3 +72,12 @@ def save_classifier_if_diverse(
         else:
             predicts.append(copy.deepcopy(classif_predict))
             params.append(string_parameters)
+
+
+def save_quality_classifier(
+    f1_score: float,
+    params: List[str],
+    string_parameters: str,
+):
+    if f1_score > 0.3:
+        params.append(string_parameters)

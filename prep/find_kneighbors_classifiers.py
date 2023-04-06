@@ -3,16 +3,16 @@ from pathlib import Path
 from typing import List
 
 import pandas as pd
-from sklearn.neighbors import KNeighborsClassifier
-
 from find_classifiers import create_base, save_classifier_if_diverse
+from sklearn.metrics import f1_score
+from sklearn.neighbors import KNeighborsClassifier
 
 
 def generate() -> List[str]:
     nr_items = 200
     X_test, X_train, Y_train, Y_test = create_base(nr_items)
 
-    predicts: List[int] = []
+    # predicts: List[int] = []
     params: List[str] = []
     for n_neighbors in range(5, 31):
         for weights in ["uniform", "distance"]:
@@ -26,24 +26,35 @@ def generate() -> List[str]:
                     )
                     knn.fit(X_train, Y_train)
                     a_predict = knn.predict(X_test)
-                    a_score = knn.score(X_test, Y_test)
-
-                    save_classifier_if_diverse(
-                        classif_score=a_score,
-                        classif_predict=a_predict,
-                        predicts=predicts,
-                        params=params,
-                        nr_items=nr_items,
-                        string_parameters=str(
-                            str(n_neighbors)
-                            + ","
-                            + weights
-                            + ","
-                            + algorithm
-                            + ","
-                            + str(p),
-                        ),
-                    )
+                    f1 = f1_score(Y_test, a_predict)
+                    if f1 > 0.5:
+                        params.append(
+                            str(
+                                str(n_neighbors)
+                                + ","
+                                + weights
+                                + ","
+                                + algorithm
+                                + ","
+                                + str(p),
+                            )
+                        )
+                    # save_classifier_if_diverse(
+                    #     classif_score=a_score,
+                    #     classif_predict=a_predict,
+                    #     predicts=predicts,
+                    #     params=params,
+                    #     nr_items=nr_items,
+                    #     string_parameters=str(
+                    #         str(n_neighbors)
+                    #         + ","
+                    #         + weights
+                    #         + ","
+                    #         + algorithm
+                    #         + ","
+                    #         + str(p),
+                    #     ),
+                    # )
         print(n_neighbors)
     return params
 

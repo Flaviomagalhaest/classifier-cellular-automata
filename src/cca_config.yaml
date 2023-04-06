@@ -1,4 +1,9 @@
 init_energy: 5000
-matrix_size: 8
-distance: 3
-interactions: 10
+interactions: 20
+matrix:
+  size: 4
+  distance: 1
+dataset:
+  name: jm1
+  train_amount: 1000
+  test_amount: 300
