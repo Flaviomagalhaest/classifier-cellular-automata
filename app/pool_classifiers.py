@@ -2,7 +2,60 @@ import csv
 import re
 from typing import List
 
+from sklearn.model_selection import ParameterGrid
+
 from src.elements import Classifier
+
+
+def _get_svm(
+    list_classifiers: List[Classifier] = [],
+) -> List[Classifier]:
+    from sklearn.svm import LinearSVC
+
+    def _get_svc() -> None:
+        from sklearn.svm import SVC
+
+        svm_params = {
+            "C": [0.1, 1, 10],
+            "kernel": ["linear", "rbf"],
+            "gamma": ["scale", "auto", 0.1, 1],
+            "shrinking": [True, False],
+            "class_weight": [None, "balanced"],
+        }
+        svm_combinations = list(ParameterGrid(svm_params))
+        n_classifiers = min(len(svm_combinations), 100)
+        for params in svm_combinations[:n_classifiers]:
+            clf = SVC(**params)
+            list_classifiers.append(
+                Classifier(
+                    "SVC",
+                    clf,
+                )
+            )
+
+    def _get_linear_svc() -> None:
+        svc_params = {
+            "C": [0.1, 1.0, 10.0],
+            "loss": ["hinge", "squared_hinge"],
+            "max_iter": [1000, 5000],
+        }
+
+        svc_combinations = list(ParameterGrid(svc_params))
+
+        n_classifiers = min(len(svc_combinations), 100)
+
+        for params in svc_combinations[:n_classifiers]:
+            clf = LinearSVC(**params)
+            list_classifiers.append(
+                Classifier(
+                    "LinearSVC",
+                    clf,
+                )
+            )
+
+    # _get_svc()
+    _get_linear_svc()
+    return list_classifiers
 
 
 def _get_neighbors(
@@ -42,221 +95,260 @@ def _get_neighbors(
 def _get_discriminant_analysis(
     list_classifiers: List[Classifier] = [],
 ) -> List[Classifier]:
-    from sklearn.discriminant_analysis import (
-        LinearDiscriminantAnalysis,
-        QuadraticDiscriminantAnalysis,
-    )
+    from sklearn.discriminant_analysis import (LinearDiscriminantAnalysis,
+                                               QuadraticDiscriminantAnalysis)
 
     def _linear_discriminant_aanalysis() -> None:
-        classifier = LinearDiscriminantAnalysis()
 
-        list_classifiers.append(
-            Classifier(
-                "LinearDiscriminantAnalysis",
-                classifier,
+        lda_params = {
+            "solver": ["svd", "lsqr", "eigen"],
+            # "shrinkage": [None, "auto", 0.1],
+            "tol": [1e-4, 1e-3, 1e-2],
+        }
+
+        lda_combinations = list(ParameterGrid(lda_params))
+
+        n_classifiers = min(len(lda_combinations), 100)
+
+        for params in lda_combinations[:n_classifiers]:
+            clf = LinearDiscriminantAnalysis(**params)
+            list_classifiers.append(
+                Classifier(
+                    "LinearDiscriminantAnalysis",
+                    clf,
+                )
             )
-        )
 
     def _quadratic_discriminant_aanalysis() -> None:
-        classifier = QuadraticDiscriminantAnalysis()
+        qda_params = {
+            "priors": [None, [0.3, 0.7], [0.5, 0.5], [0.7, 0.3]],
+            "reg_param": [0, 0.1, 0.2, 0.5],
+            "store_covariance": [True, False],
+        }
 
-        list_classifiers.append(
-            Classifier(
-                "QuadraticDiscriminantAnalysis",
-                classifier,
+        qda_combinations = list(ParameterGrid(qda_params))
+
+        n_classifiers = min(len(qda_combinations), 100)
+
+        for params in qda_combinations[:n_classifiers]:
+            clf = QuadraticDiscriminantAnalysis(**params)
+            list_classifiers.append(
+                Classifier(
+                    "QuadraticDiscriminantAnalysis",
+                    clf,
+                )
             )
-        )
 
     _linear_discriminant_aanalysis()
     _quadratic_discriminant_aanalysis()
     return list_classifiers
 
 
-def _gaussian_process(
+def _get_gaussian_process(
     list_classifiers: List[Classifier] = [],
 ) -> List[Classifier]:
     from sklearn.gaussian_process import GaussianProcessClassifier
-    from sklearn.gaussian_process.kernels import RBF
+    from sklearn.gaussian_process.kernels import RBF, ConstantKernel, Matern
 
     def _gaussian_process_classifier() -> None:
-        classifier = GaussianProcessClassifier(1.0 * RBF(1.0))
+        gpc_params = {
+            "kernel": [
+                1.0 * RBF(length_scale=1.0),
+                ConstantKernel(1.0) * Matern(length_scale=1.0),
+                Matern(length_scale=1.0),
+            ],
+            "optimizer": [None, "fmin_l_bfgs_b"],
+            "n_restarts_optimizer": [0, 1, 2, 3],
+            "multi_class": ["one_vs_rest", "one_vs_one"],
+        }
 
-        list_classifiers.append(
-            Classifier(
-                "GaussianProcessClassifier",
-                classifier,
+        gpc_combinations = list(ParameterGrid(gpc_params))
+
+        n_classifiers = min(len(gpc_combinations), 50)
+
+        for params in gpc_combinations[:n_classifiers]:
+            clf = GaussianProcessClassifier(**params)
+            list_classifiers.append(
+                Classifier(
+                    "GaussianProcessClassifier",
+                    clf,
+                )
             )
-        )
 
-    _gaussian_process_classifier()
+    # _gaussian_process_classifier()
     return list_classifiers
 
 
-def _linear_model(
+def _get_linear_model(
     list_classifiers: List[Classifier] = [],
 ) -> List[Classifier]:
-    from sklearn.linear_model import (
-        LogisticRegression,
-        PassiveAggressiveClassifier,
-        RidgeClassifier,
-        SGDClassifier,
-    )
+    from sklearn.linear_model import (LogisticRegression,
+                                      PassiveAggressiveClassifier,
+                                      RidgeClassifier, SGDClassifier)
 
     def _logistic_regression() -> None:
-        list_logistic_regression = [
-            LogisticRegression(random_state=0),
-            LogisticRegression(C=0.5),
-            LogisticRegression(C=0.1),
-            LogisticRegression(C=0.05),
-            LogisticRegression(solver="newton-cg", random_state=0),
-            LogisticRegression(solver="newton-cg", C=0.5),
-            LogisticRegression(solver="newton-cg", C=0.1),
-            LogisticRegression(solver="newton-cg", C=0.05),
-            LogisticRegression(
-                penalty="none",
-                solver="newton-cg",
-                random_state=0,
-            ),
-            LogisticRegression(
-                penalty="l2",
-                solver="liblinear",
-                random_state=0,
-            ),
-            LogisticRegression(penalty="l2", solver="liblinear", C=0.5),
-            LogisticRegression(penalty="l2", solver="liblinear", C=0.1),
-            LogisticRegression(penalty="l2", solver="liblinear", C=0.05),
-            LogisticRegression(
-                penalty="l1",
-                solver="liblinear",
-                random_state=0,
-            ),
-            LogisticRegression(penalty="l1", solver="liblinear", C=0.5),
-            LogisticRegression(penalty="l1", solver="liblinear", C=0.1),
-            LogisticRegression(penalty="l1", solver="liblinear", C=0.05),
-        ]
+        logreg_params = {
+            "penalty": ["l1", "l2"],
+            "C": [0.1, 1, 10],
+            "solver": ["liblinear", "saga"],
+            "max_iter": [100, 200],
+            "class_weight": [None, "balanced"],
+        }
 
-        for logistic_regression in list_logistic_regression:
+        logreg_combinations = list(ParameterGrid(logreg_params))
+
+        n_classifiers = min(len(logreg_combinations), 100)
+
+        for params in logreg_combinations[:n_classifiers]:
+            clf = LogisticRegression(**params)
             list_classifiers.append(
                 Classifier(
                     "LogisticRegression",
-                    logistic_regression,
+                    clf,
                 )
             )
 
     def _sgd_classifier() -> None:
-        list_sgd_classifier = [
-            SGDClassifier(loss="hinge", penalty="l2"),
-            SGDClassifier(loss="log"),
-            SGDClassifier(loss="modified_huber"),
-            SGDClassifier(loss="squared_hinge"),
-            SGDClassifier(loss="perceptron"),
-            SGDClassifier(loss="huber"),
-            SGDClassifier(loss="epsilon_insensitive"),
-            SGDClassifier(loss="squared_loss"),
-        ]
+        sgd_params = {
+            "loss": ["hinge", "log", "modified_huber"],
+            "penalty": ["l1", "l2", "elasticnet"],
+            "alpha": [0.0001, 0.001, 0.01],
+            "max_iter": [100, 200, 500],
+            "class_weight": [None, "balanced"],
+        }
 
-        for sgd_classifier in list_sgd_classifier:
+        sgd_combinations = list(ParameterGrid(sgd_params))
+
+        n_classifiers = min(len(sgd_combinations), 100)
+
+        for params in sgd_combinations[:n_classifiers]:
+            clf = SGDClassifier(**params)
             list_classifiers.append(
                 Classifier(
                     "SGDClassifier",
-                    sgd_classifier,
+                    clf,
                 )
             )
 
     def _ridge_classifier() -> None:
-        list_ridge_classifier = [
-            RidgeClassifier(solver="svd"),
-            RidgeClassifier(alpha=2.5, solver="svd"),
-            RidgeClassifier(alpha=5, solver="svd"),
-            RidgeClassifier(alpha=0.5, solver="svd"),
-            RidgeClassifier(fit_intercept=False, solver="svd"),
-            RidgeClassifier(alpha=2.5, fit_intercept=False, solver="svd"),
-            RidgeClassifier(alpha=5, fit_intercept=False, solver="svd"),
-            RidgeClassifier(alpha=0.5, fit_intercept=False, solver="svd"),
-            RidgeClassifier(solver="sparse_cg"),
-            RidgeClassifier(solver="lsqr"),
-            RidgeClassifier(solver="sag"),
-        ]
+        ridge_params = {
+            "alpha": [0.01, 0.1, 1.0],
+            "fit_intercept": [True, False],
+            "normalize": [True, False],
+            "solver": [
+                "auto",
+                "svd",
+                "cholesky",
+                "lsqr",
+                "sparse_cg",
+                "sag",
+                "saga",
+            ],
+        }
 
-        for ridge_classifier in list_ridge_classifier:
+        ridge_combinations = list(ParameterGrid(ridge_params))
+
+        n_classifiers = min(len(ridge_combinations), 100)
+
+        for params in ridge_combinations[:n_classifiers]:
+            clf = RidgeClassifier(**params)
             list_classifiers.append(
                 Classifier(
                     "RidgeClassifier",
-                    ridge_classifier,
+                    clf,
                 )
             )
 
     def _passive_aggressive_classifier() -> None:
-        list_passive_aggressive_classifier = [
-            PassiveAggressiveClassifier(),
-            PassiveAggressiveClassifier(),
-            PassiveAggressiveClassifier(),
-            PassiveAggressiveClassifier(),
-            PassiveAggressiveClassifier(),
-            PassiveAggressiveClassifier(),
-            PassiveAggressiveClassifier(),
-            PassiveAggressiveClassifier(),
-            PassiveAggressiveClassifier(),
-            PassiveAggressiveClassifier(),
-            PassiveAggressiveClassifier(),
-            PassiveAggressiveClassifier(),
-            PassiveAggressiveClassifier(),
-            PassiveAggressiveClassifier(),
-            PassiveAggressiveClassifier(),
-            PassiveAggressiveClassifier(),
-            PassiveAggressiveClassifier(),
-            PassiveAggressiveClassifier(),
-            PassiveAggressiveClassifier(),
-            PassiveAggressiveClassifier(),
-            PassiveAggressiveClassifier(),
-            PassiveAggressiveClassifier(),
-            PassiveAggressiveClassifier(),
-            PassiveAggressiveClassifier(),
-            PassiveAggressiveClassifier(),
-            PassiveAggressiveClassifier(),
-            PassiveAggressiveClassifier(),
-            PassiveAggressiveClassifier(),
-            PassiveAggressiveClassifier(),
-            PassiveAggressiveClassifier(),
-            PassiveAggressiveClassifier(),
-            PassiveAggressiveClassifier(),
-            PassiveAggressiveClassifier(),
-            PassiveAggressiveClassifier(),
-            PassiveAggressiveClassifier(),
-            PassiveAggressiveClassifier(),
-            PassiveAggressiveClassifier(),
-            PassiveAggressiveClassifier(),
-            PassiveAggressiveClassifier(),
-            PassiveAggressiveClassifier(),
-            PassiveAggressiveClassifier(),
-            PassiveAggressiveClassifier(),
-            PassiveAggressiveClassifier(),
-            PassiveAggressiveClassifier(),
-            PassiveAggressiveClassifier(),
-            PassiveAggressiveClassifier(),
-            PassiveAggressiveClassifier(),
-            PassiveAggressiveClassifier(),
-            PassiveAggressiveClassifier(),
-            PassiveAggressiveClassifier(),
-            PassiveAggressiveClassifier(),
-            PassiveAggressiveClassifier(),
-            PassiveAggressiveClassifier(),
-            PassiveAggressiveClassifier(),
-            PassiveAggressiveClassifier(),
-            PassiveAggressiveClassifier(),
-            PassiveAggressiveClassifier(),
-            PassiveAggressiveClassifier(),
-            PassiveAggressiveClassifier(),
-            PassiveAggressiveClassifier(),
-        ]
+        pa_params = {
+            "C": [0.1, 1.0, 10.0],
+            "fit_intercept": [True, False],
+            "loss": ["hinge", "squared_hinge"],
+            "max_iter": [1000, 5000],
+        }
 
-        for passive_aggressive_classif in list_passive_aggressive_classifier:
+        pa_combinations = list(ParameterGrid(pa_params))
+
+        n_classifiers = min(len(pa_combinations), 100)
+
+        for params in pa_combinations[:n_classifiers]:
+            clf = PassiveAggressiveClassifier(**params)
             list_classifiers.append(
                 Classifier(
                     "PassiveAggressiveClassifier",
-                    passive_aggressive_classif,
+                    clf,
                 )
             )
+        # list_passive_aggressive_classifier = [
+        #     PassiveAggressiveClassifier(),
+        #     PassiveAggressiveClassifier(),
+        #     PassiveAggressiveClassifier(),
+        #     PassiveAggressiveClassifier(),
+        #     PassiveAggressiveClassifier(),
+        #     PassiveAggressiveClassifier(),
+        #     PassiveAggressiveClassifier(),
+        #     PassiveAggressiveClassifier(),
+        #     PassiveAggressiveClassifier(),
+        #     PassiveAggressiveClassifier(),
+        #     PassiveAggressiveClassifier(),
+        #     PassiveAggressiveClassifier(),
+        #     PassiveAggressiveClassifier(),
+        #     PassiveAggressiveClassifier(),
+        #     PassiveAggressiveClassifier(),
+        #     PassiveAggressiveClassifier(),
+        #     PassiveAggressiveClassifier(),
+        #     PassiveAggressiveClassifier(),
+        #     PassiveAggressiveClassifier(),
+        #     PassiveAggressiveClassifier(),
+        #     PassiveAggressiveClassifier(),
+        #     PassiveAggressiveClassifier(),
+        #     PassiveAggressiveClassifier(),
+        #     PassiveAggressiveClassifier(),
+        #     PassiveAggressiveClassifier(),
+        #     PassiveAggressiveClassifier(),
+        #     PassiveAggressiveClassifier(),
+        #     PassiveAggressiveClassifier(),
+        #     PassiveAggressiveClassifier(),
+        #     PassiveAggressiveClassifier(),
+        #     PassiveAggressiveClassifier(),
+        #     PassiveAggressiveClassifier(),
+        #     PassiveAggressiveClassifier(),
+        #     PassiveAggressiveClassifier(),
+        #     PassiveAggressiveClassifier(),
+        #     PassiveAggressiveClassifier(),
+        #     PassiveAggressiveClassifier(),
+        #     PassiveAggressiveClassifier(),
+        #     PassiveAggressiveClassifier(),
+        #     PassiveAggressiveClassifier(),
+        #     PassiveAggressiveClassifier(),
+        #     PassiveAggressiveClassifier(),
+        #     PassiveAggressiveClassifier(),
+        #     PassiveAggressiveClassifier(),
+        #     PassiveAggressiveClassifier(),
+        #     PassiveAggressiveClassifier(),
+        #     PassiveAggressiveClassifier(),
+        #     PassiveAggressiveClassifier(),
+        #     PassiveAggressiveClassifier(),
+        #     PassiveAggressiveClassifier(),
+        #     PassiveAggressiveClassifier(),
+        #     PassiveAggressiveClassifier(),
+        #     PassiveAggressiveClassifier(),
+        #     PassiveAggressiveClassifier(),
+        #     PassiveAggressiveClassifier(),
+        #     PassiveAggressiveClassifier(),
+        #     PassiveAggressiveClassifier(),
+        #     PassiveAggressiveClassifier(),
+        #     PassiveAggressiveClassifier(),
+        #     PassiveAggressiveClassifier(),
+        # ]
+
+        # for passive_aggressive_classif in list_passive_aggressive_classifier:
+        #     list_classifiers.append(
+        #         Classifier(
+        #             "PassiveAggressiveClassifier",
+        #             passive_aggressive_classif,
+        #         )
+        #     )
 
     _logistic_regression()
     _sgd_classifier()
@@ -265,19 +357,26 @@ def _linear_model(
     return list_classifiers
 
 
-def _naive_bayes(
+def _get_naive_bayes(
     list_classifiers: List[Classifier] = [],
 ) -> List[Classifier]:
     from sklearn.naive_bayes import GaussianNB
 
     def _gaussian_nb() -> None:
-        list_gaussian_nb = [GaussianNB()]
+        gnb_params = {
+            "priors": [None, [0.1, 0.9], [0.25, 0.75], [0.4, 0.6], [0.5, 0.5]],
+        }
 
-        for gaussian_nb in list_gaussian_nb:
+        gnb_combinations = list(ParameterGrid(gnb_params))
+
+        n_classifiers = min(len(gnb_combinations), 100)
+
+        for params in gnb_combinations[:n_classifiers]:
+            clf = GaussianNB(**params)
             list_classifiers.append(
                 Classifier(
-                    "GaussianNaiveBayes",
-                    gaussian_nb,
+                    "GaussianNB",
+                    clf,
                 )
             )
 
@@ -285,19 +384,36 @@ def _naive_bayes(
     return list_classifiers
 
 
-def _neural_network(
+def _get_neural_network(
     list_classifiers: List[Classifier] = [],
 ) -> List[Classifier]:
     from sklearn.neural_network import MLPClassifier
 
     def _mlpc() -> None:
-        list_mlpc = [MLPClassifier(alpha=1, max_iter=1000)]
+        mlp_params = {
+            "hidden_layer_sizes": [
+                (10,),
+                (50,),
+                (100,),
+                (10, 10),
+                (50, 50),
+                (100, 100),
+            ],
+            "activation": ["relu", "logistic", "tanh"],
+            "solver": ["sgd", "adam"],
+            "alpha": [0.0001, 0.001, 0.01],
+        }
 
-        for mlpc in list_mlpc:
+        mlp_combinations = list(ParameterGrid(mlp_params))
+
+        n_classifiers = min(len(mlp_combinations), 50)
+
+        for params in mlp_combinations[:n_classifiers]:
+            clf = MLPClassifier(**params)
             list_classifiers.append(
                 Classifier(
-                    "Neural_network_mlpc",
-                    mlpc,
+                    "MLPClassifier",
+                    clf,
                 )
             )
 
@@ -305,22 +421,30 @@ def _neural_network(
     return list_classifiers
 
 
-def _tree(
+def _get_tree(
     list_classifiers: List[Classifier] = [],
 ) -> List[Classifier]:
     from sklearn.tree import DecisionTreeClassifier
 
     def _decision_tree() -> None:
-        list_decision_tree = [
-            DecisionTreeClassifier(max_depth=3),
-            DecisionTreeClassifier(max_depth=5),
-        ]
+        params = {
+            "criterion": ["gini", "entropy"],
+            "splitter": ["best", "random"],
+            "max_depth": [2, 4, 6, 8],
+            "min_samples_split": [2, 4, 6, 8],
+            "min_samples_leaf": [1, 2, 3, 4, 5],
+        }
 
-        for decision_tree in list_decision_tree:
+        tree_combinations = list(ParameterGrid(params))
+
+        n_classifiers = min(len(tree_combinations), 100)
+
+        for params in tree_combinations[:n_classifiers]:
+            clf = DecisionTreeClassifier(**params)
             list_classifiers.append(
                 Classifier(
-                    "Decision_Tree",
-                    decision_tree,
+                    "DecisionTreeClassifier",
+                    clf,
                 )
             )
 
@@ -333,9 +457,10 @@ def get_all_classifiers() -> List[Classifier]:
 
     _get_neighbors(list_classifiers)
     _get_discriminant_analysis(list_classifiers)
-    _gaussian_process(list_classifiers)
-    _linear_model(list_classifiers)
-    _naive_bayes(list_classifiers)
-    _neural_network(list_classifiers)
-    _tree(list_classifiers)
+    _get_gaussian_process(list_classifiers)
+    _get_linear_model(list_classifiers)
+    _get_naive_bayes(list_classifiers)
+    _get_neural_network(list_classifiers)
+    _get_tree(list_classifiers)
+    _get_svm(list_classifiers)
     return list_classifiers

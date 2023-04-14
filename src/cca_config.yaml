@@ -1,8 +1,8 @@
 init_energy: 5000
 interactions: 20
 matrix:
-  size: 4
-  distance: 1
+  size: 8
+  distance: 3
 dataset:
   name: jm1
   train_amount: 1000
